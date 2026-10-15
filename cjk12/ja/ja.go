@@ -3,7 +3,8 @@
 // Package ja contains 12px bitmap faces for East Asian scripts,
 // Japanese forms, from Fusion Pixel Font 2026.09.25 (proportional).
 // Styles: Regular, Bold. Bold is Regular emboldened when first used: each
-// glyph drawn again a pixel to its right.
+// glyph drawn again a pixel to its right, gaps of a pixel between strokes
+// kept open.
 // Glyph data: SIL Open Font License 1.1; see NOTICE.md.
 package ja
 
@@ -32,7 +33,7 @@ var (
 		return f
 	})
 	faceBold = sync.OnceValue(func() *bitmap.Face {
-		f, err := bitmap.Embolden(faceRegular())
+		f, err := bitmap.EmboldenOpen(faceRegular())
 		if err != nil {
 			panic(err)
 		}

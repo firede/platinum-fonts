@@ -61,6 +61,25 @@ func TestEmbolden(t *testing.T) {
 	}
 }
 
+func TestEmboldenOpen(t *testing.T) {
+	// Strokes a pixel apart keep their gap; others thicken.
+	g := EmboldenGlyphOpen(glyphOf(6, 2, "#.#..", "#....", "###.."))
+	if g.Advance != 7 || g.Bounds != image.Rect(0, -2, 6, 1) {
+		t.Fatalf("advance %d, bounds %v", g.Advance, g.Bounds)
+	}
+	if p := picture(g); p != "#.##../##..../####../" {
+		t.Errorf("emboldened %s", p)
+	}
+	f := face(t, map[rune]Glyph{'x': glyphOf(4, 2, "#.#", ".#.", "#.#")})
+	bold, err := EmboldenOpen(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, _ := bold.Glyph('x'); picture(g) != "#.##/.##./#.##/" {
+		t.Errorf("bold x %s", picture(g))
+	}
+}
+
 func TestFallbackDrawMeasure(t *testing.T) {
 	latin := face(t, map[rune]Glyph{'a': glyphOf(3, 1, "##", "##")})
 	cjk := face(t, map[rune]Glyph{'a': glyphOf(9, 1, "#"), '中': glyphOf(5, 1, "####", "#..#")})

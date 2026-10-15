@@ -38,7 +38,8 @@ Regular 和 Bold。后缀决定东亚文字字形的地区写法。em 为 12px�
 - Platinum Sans 与 Platinum Sans Small：比例宽度的拉丁字母，含 Latin-1 与常用中欧
   字母、排版标点，以及符号 ⌘ ↑ ↵ ⌫（仅 Platinum Sans）。
 - Platinum Sans Small Bold 与 `cjk12` 的 Bold 由 Regular 算法加粗得到：每个字形向右
-  1 像素再绘制一次，宽度加 1 像素。`cjk12` 的 Bold 在首次使用时计算。
+  1 像素再绘制一次，宽度加 1 像素。`cjk12` 的 Bold 保留笔画之间 1 像素的空隙
+  （`bitmap.EmboldenOpen`），在首次使用时计算。
 - `cjk12`：同一批字符的四套地区字形；每个包约 34,600 个字形，635 KB。汉字墨迹
   11×11，从基线下 1 行到基线上 10 行；步进 12。只含东亚文字区块。各字符集覆盖率：
   [docs/coverage.md](docs/coverage.md)。

@@ -42,7 +42,8 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   symbols ⌘ ↑ ↵ ⌫ (Platinum Sans only).
 - Platinum Sans Small Bold and the `cjk12` Bold faces are Regular
   emboldened: each glyph drawn again 1 pixel to the right, 1 pixel wider.
-  `cjk12` Bold is computed on first use.
+  `cjk12` Bold keeps gaps of 1 pixel between strokes open
+  (`bitmap.EmboldenOpen`), and is computed on first use.
 - `cjk12`: the same characters in four sets of regional forms; about
   34,600 glyphs and 635 KB per package. Ideographs: 11×11 ink, from 1 row
   below the baseline to 10 rows above it; advance 12. East Asian blocks

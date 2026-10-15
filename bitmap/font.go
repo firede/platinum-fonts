@@ -69,12 +69,32 @@ func EmboldenGlyph(g Glyph) Glyph {
 	return NewGlyph(g.Advance+1, b, func(x, y int) bool { return g.At(x, y) || g.At(x-1, y) })
 }
 
+// EmboldenGlyphOpen is EmboldenGlyph that keeps open the gaps of one
+// pixel between strokes: a pixel right of the ink is added only where the
+// pixel right of it is paper. Glyphs whose strokes stand a pixel apart, as
+// ideographs at 12 pixels, stay legible bold.
+func EmboldenGlyphOpen(g Glyph) Glyph {
+	b := g.Bounds
+	if b.Empty() {
+		return Glyph{Advance: g.Advance + 1, Bounds: b}
+	}
+	b.Max.X++
+	return NewGlyph(g.Advance+1, b, func(x, y int) bool {
+		return g.At(x, y) || g.At(x-1, y) && !g.At(x+1, y)
+	})
+}
+
 // Embolden returns f with every glyph emboldened by EmboldenGlyph.
-func Embolden(f *Face) (*Face, error) {
+func Embolden(f *Face) (*Face, error) { return embolden(f, EmboldenGlyph) }
+
+// EmboldenOpen returns f with every glyph emboldened by EmboldenGlyphOpen.
+func EmboldenOpen(f *Face) (*Face, error) { return embolden(f, EmboldenGlyphOpen) }
+
+func embolden(f *Face, bold func(Glyph) Glyph) (*Face, error) {
 	glyphs := make(map[rune]Glyph, f.Len())
 	f.Runes(func(r rune) bool {
 		g, _ := f.Glyph(r)
-		glyphs[r] = EmboldenGlyph(g)
+		glyphs[r] = bold(g)
 		return true
 	})
 	data, err := Encode(f.Ascent(), f.Descent(), glyphs)

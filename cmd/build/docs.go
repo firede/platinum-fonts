@@ -60,7 +60,7 @@ func buildDocs(latin []latinFace, cjk *cjkMade, out map[string][]byte) error {
 	// The specimen, three times as large: each Latin style, its Chinese
 	// from zhhans in the same style, then each package of cjk12.
 	zh := cjk.faces[0].face
-	zhBold, err := bitmap.Embolden(zh)
+	zhBold, err := bitmap.EmboldenOpen(zh)
 	if err != nil {
 		return err
 	}
