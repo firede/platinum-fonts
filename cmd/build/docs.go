@@ -1,26 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"strings"
 
-	"github.com/firede/platinum-fonts/bitmap"
 	"github.com/firede/platinum-fonts/internal/coverage"
 )
-
-// cjkSamples are the specimen's lines of cjk12, by package.
-var cjkSamples = map[string]string{
-	"zhhans": "简体中文：永和九年，岁在癸丑。藏鑫覆盖、「引号」《书名》",
-	"zhhant": "繁體中文：永和九年，歲在癸丑。藏鑫覆蓋、「引號」《書名》",
-	"ja":     "日本語：いろはにほへと　カタカナ　漢字の鬱と「括弧」",
-	"ko":     "한국어：다람쥐　헌　쳇바퀴에　타고파　「漢字」",
-}
-
-const latinSample = ": The quick brown fox jumps over the lazy dog. Ångström, Łódź, Čeština 0123456789 中文字体"
 
 // licenses are the license files of the Fusion Pixel archive, and where
 // they go in the repository.
@@ -57,45 +44,11 @@ func buildDocs(latin []latinFace, cjk *cjkMade, out map[string][]byte) error {
 	b.WriteString("\n")
 	out["docs/coverage.md"] = []byte(b.String())
 
-	// The specimen, three times as large: each Latin style, its Chinese
-	// from zhhans in the same style, then each package of cjk12.
-	zh := cjk.faces[0].face
-	zhBold, err := bitmap.EmboldenOpen(zh)
+	pic, err := specimen(latin, cjk)
 	if err != nil {
 		return err
 	}
-	type line struct {
-		font bitmap.Font
-		text string
-	}
-	var lines []line
-	for _, l := range latin {
-		han := zh
-		if l.style == "Bold" {
-			han = zhBold
-		}
-		lines = append(lines, line{bitmap.Fallback(l.face, han), l.family + " " + l.style + latinSample})
-	}
-	for _, f := range cjk.faces {
-		lines = append(lines, line{f.face, cjkSamples[f.pkg]})
-	}
-	const scale, lineHeight, pad, firstBase = 3, 18, 8, 12
-	width := 0
-	for _, l := range lines {
-		width = max(width, bitmap.Measure(l.font, l.text))
-	}
-	img := image.NewRGBA(image.Rect(0, 0, (width+2*pad)*scale, (len(lines)*lineHeight+2*pad-4)*scale))
-	for i := range img.Pix {
-		img.Pix[i] = 0xFF
-	}
-	for i, l := range lines {
-		bitmap.Draw(scaled{img, scale}, image.Pt(pad, pad+firstBase+i*lineHeight), l.font, l.text, color.Black)
-	}
-	var pngData bytes.Buffer
-	if err := (&png.Encoder{CompressionLevel: png.BestCompression}).Encode(&pngData, img); err != nil {
-		return err
-	}
-	out["docs/specimen.png"] = pngData.Bytes()
+	out["docs/specimen.png"] = pic
 
 	// Licenses and the notice crediting them.
 	var notice strings.Builder
