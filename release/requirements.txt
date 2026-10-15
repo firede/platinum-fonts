@@ -1,0 +1,6 @@
+bdffont==0.0.41
+brotli==1.2.0
+fonttools==4.67.0
+pcffont==0.0.34
+pixel-font-builder==0.0.61
+zopfli==0.4.3

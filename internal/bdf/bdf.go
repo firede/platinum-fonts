@@ -1,4 +1,4 @@
-// Package bdf reads the glyphs of a font in the Glyph Bitmap Distribution
+// Package bdf reads and writes fonts in the Glyph Bitmap Distribution
 // Format (BDF) 2.1.
 package bdf
 
@@ -7,6 +7,9 @@ import (
 	"bytes"
 	"fmt"
 	"image"
+	"io"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -129,4 +132,73 @@ func Parse(data []byte) (*Font, error) {
 		return nil, fail("the last character does not end")
 	}
 	return f, nil
+}
+
+// Header is what Write puts before the glyphs of a font.
+type Header struct {
+	Name            string            // the FONT line
+	PixelSize       int               // SIZE and PIXEL_SIZE
+	Ascent, Descent int               // FONT_ASCENT and FONT_DESCENT
+	Properties      map[string]string // more properties, values written as they are
+}
+
+// Write writes a BDF font of glyphs, by character, sorted by character.
+// notdef, if it has a box, is written first, as .notdef with no encoding.
+func Write(w io.Writer, h Header, notdef *bitmap.Glyph, glyphs map[rune]bitmap.Glyph) error {
+	runes := slices.Sorted(maps.Keys(glyphs))
+	box := image.Rectangle{}
+	all := func(fn func(bitmap.Glyph)) {
+		if notdef != nil {
+			fn(*notdef)
+		}
+		for _, r := range runes {
+			fn(glyphs[r])
+		}
+	}
+	all(func(g bitmap.Glyph) { box = box.Union(g.Bounds) })
+	b := bufio.NewWriter(w)
+	fmt.Fprintf(b, "STARTFONT 2.1\nFONT %s\nSIZE %d 75 75\n", h.Name, h.PixelSize)
+	fmt.Fprintf(b, "FONTBOUNDINGBOX %d %d %d %d\n", box.Dx(), box.Dy(), box.Min.X, -box.Max.Y)
+	keys := slices.Sorted(maps.Keys(h.Properties))
+	fmt.Fprintf(b, "STARTPROPERTIES %d\n", len(keys)+3)
+	fmt.Fprintf(b, "PIXEL_SIZE %d\nFONT_ASCENT %d\nFONT_DESCENT %d\n", h.PixelSize, h.Ascent, h.Descent)
+	for _, k := range keys {
+		fmt.Fprintf(b, "%s %s\n", k, h.Properties[k])
+	}
+	n := len(runes)
+	if notdef != nil {
+		n++
+	}
+	fmt.Fprintf(b, "ENDPROPERTIES\nCHARS %d\n", n)
+	char := func(name string, enc int, g bitmap.Glyph) {
+		gb := g.Bounds
+		fmt.Fprintf(b, "STARTCHAR %s\nENCODING %d\n", name, enc)
+		fmt.Fprintf(b, "SWIDTH %d 0\nDWIDTH %d 0\n", g.Advance*1000/h.PixelSize, g.Advance)
+		fmt.Fprintf(b, "BBX %d %d %d %d\nBITMAP\n", gb.Dx(), gb.Dy(), gb.Min.X, -gb.Max.Y)
+		digits := (gb.Dx() + 7) / 8 * 2
+		for y := gb.Min.Y; y < gb.Max.Y; y++ {
+			var row uint64
+			for x := gb.Min.X; x < gb.Max.X; x++ {
+				row <<= 1
+				if g.At(x, y) {
+					row |= 1
+				}
+			}
+			row <<= uint(digits*4 - gb.Dx())
+			fmt.Fprintf(b, "%0*X\n", digits, row)
+		}
+		b.WriteString("ENDCHAR\n")
+	}
+	if notdef != nil {
+		char(".notdef", -1, *notdef)
+	}
+	for _, r := range runes {
+		name := fmt.Sprintf("uni%04X", r)
+		if r > 0xFFFF {
+			name = fmt.Sprintf("u%05X", r)
+		}
+		char(name, int(r), glyphs[r])
+	}
+	b.WriteString("ENDFONT\n")
+	return b.Flush()
 }

@@ -10,6 +10,21 @@ Go 包。
 
 状态：早期。1.0 之前 API 可能变化。
 
+## 下载
+
+字体包附在每个 [Release](https://github.com/firede/platinum-fonts/releases) 中，每种格式一个 zip：
+
+| 格式 | 用途 |
+|---|---|
+| `otf`、`ttf` | macOS、Windows 及大多数应用 |
+| `woff2` | 网页 |
+| `otb` | Linux 桌面（GTK、Pango） |
+| `bdf`、`pcf` | X11 应用、终端 |
+
+字体名：Platinum Sans SC、TC、JP、KR 与 Platinum Sans Small SC、TC、JP、KR，各含
+Regular 和 Bold。后缀决定东亚文字字形的地区写法。em 为 12px：请在 12px 或其整数倍
+下使用。
+
 ## 字族
 
 | 字族 | 包 | 样式 | 上行 | 下行 | 大写高度 | 小写高度 |
@@ -70,6 +85,16 @@ go test ./...               # -update 重写 */testdata 中的 golden 图
 ```
 
 来源下载到 `cache/`，只下载一次，并按固定的 SHA-256 校验。输出是确定的。
+
+按发布流程生成字体包（Python 3.13，依赖见 `release/requirements.txt`）：
+
+```sh
+go run ./cmd/export -o dist/bdf
+python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
+```
+
+推送 `vX.Y.Z` 形式的 tag 时，`.github/workflows/release.yml` 执行相同的步骤，并把
+zip 附到对应的 Release。
 
 生成的文件：`sans/*`、`sanssmall/*` 与 `cjk12/*/*`（测试与 `testdata` 除外）、
 `docs/coverage.md`、`docs/specimen.png`、`licenses/`、`NOTICE.md`、`OFL.txt`。

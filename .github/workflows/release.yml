@@ -1,0 +1,57 @@
+name: release
+
+# On a version tag, builds the font packages and attaches them to the tag's
+# release. By hand, builds them as an artifact of the run only.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fonts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: release/requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: cache
+          key: sources-${{ hashFiles('sources.toml') }}
+      - run: pip install -r release/requirements.txt
+      - name: the faces are what the sources make
+        run: go run ./cmd/build -check
+      - run: go run ./cmd/export -o dist/bdf
+      - name: version and date
+        id: version
+        run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then version="${GITHUB_REF_NAME#v}"; else version=0.0.0; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "date=$(git log -1 --format=%cs)" >> "$GITHUB_OUTPUT"
+      - run: python release/build.py --version "${{ steps.version.outputs.version }}" --date "${{ steps.version.outputs.date }}" dist/bdf dist
+      - name: attach to the release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber
+          else
+            sed "s/<tag>/$GITHUB_REF_NAME/" release/notes.md > dist/notes.md
+            gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --notes-file dist/notes.md
+          fi
+      - if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: fonts
+          path: dist/*.zip

@@ -10,6 +10,23 @@ Bitmap faces for Latin and East Asian scripts. Latin faces are drawn in
 
 Status: early. The API may change before 1.0.
 
+## Download
+
+Font packages are attached to each [release](https://github.com/firede/platinum-fonts/releases),
+one zip per format:
+
+| Format | For |
+|---|---|
+| `otf`, `ttf` | macOS, Windows, most applications |
+| `woff2` | Web pages |
+| `otb` | Linux desktops (GTK, Pango) |
+| `bdf`, `pcf` | X11 applications, terminals |
+
+Font names: Platinum Sans SC, TC, JP, KR and Platinum Sans Small SC, TC,
+JP, KR, each in Regular and Bold. The suffix selects the regional forms
+of the East Asian glyphs. The em is 12px: use the fonts at 12px or a
+multiple of it.
+
 ## Families
 
 | Family | Package | Styles | Ascent | Descent | Cap height | x-height |
@@ -78,6 +95,16 @@ go test ./...               # -update rewrites the golden images in */testdata
 
 Sources are downloaded once into `cache/` and verified against their
 pinned SHA-256. Output is deterministic.
+
+Font packages, as a release makes them (Python 3.13, `release/requirements.txt`):
+
+```sh
+go run ./cmd/export -o dist/bdf
+python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
+```
+
+Pushing a tag `vX.Y.Z` runs the same steps in `.github/workflows/release.yml`
+and attaches the zips to the release.
 
 Generated files: `sans/*`, `sanssmall/*` and `cjk12/*/*` except tests and
 `testdata`, `docs/coverage.md`, `docs/specimen.png`, `licenses/`,

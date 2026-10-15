@@ -1,9 +1,12 @@
 package bdf
 
 import (
+	"bytes"
 	"image"
 	"strings"
 	"testing"
+
+	"github.com/firede/platinum-fonts/bitmap"
 )
 
 const sample = `STARTFONT 2.1
@@ -74,6 +77,48 @@ func TestParseErrors(t *testing.T) {
 	} {
 		if _, err := Parse([]byte(src)); err == nil {
 			t.Errorf("%s: no error", name)
+		}
+	}
+}
+
+func TestWriteRoundTrip(t *testing.T) {
+	in, err := Parse([]byte(sample))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wide := bitmap.NewGlyph(18, image.Rect(0, -9, 17, 2), func(x, y int) bool { return (x+y)%3 == 0 })
+	in.Glyphs[0x20000] = wide
+	in.Glyphs[' '] = bitmap.Glyph{Advance: 4}
+	notdef := bitmap.NewGlyph(7, image.Rect(1, -8, 6, 0), func(x, y int) bool { return x == 1 || y == -1 })
+	var out bytes.Buffer
+	h := Header{Name: "-test-", PixelSize: 12, Ascent: 11, Descent: 3, Properties: map[string]string{"FAMILY_NAME": `"Test"`}}
+	if err := Write(&out, h, &notdef, in.Glyphs); err != nil {
+		t.Fatal(err)
+	}
+	text := out.String()
+	for _, want := range []string{"STARTCHAR .notdef\nENCODING -1\n", "FAMILY_NAME \"Test\"\n", "STARTCHAR u20000\n", "CHARS 4\n"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("no %q in\n%s", want, text)
+		}
+	}
+	back, err := Parse(out.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if back.Ascent != 11 || back.Descent != 3 || len(back.Glyphs) != len(in.Glyphs) {
+		t.Fatalf("ascent %d, descent %d, %d glyphs", back.Ascent, back.Descent, len(back.Glyphs))
+	}
+	for r, g := range in.Glyphs {
+		b := back.Glyphs[r]
+		if b.Advance != g.Advance || b.Bounds != g.Bounds {
+			t.Fatalf("%U: advance %d in %v, wrote %d in %v", r, b.Advance, b.Bounds, g.Advance, g.Bounds)
+		}
+		for y := g.Bounds.Min.Y; y < g.Bounds.Max.Y; y++ {
+			for x := g.Bounds.Min.X; x < g.Bounds.Max.X; x++ {
+				if b.At(x, y) != g.At(x, y) {
+					t.Fatalf("%U differs at %d, %d", r, x, y)
+				}
+			}
 		}
 	}
 }

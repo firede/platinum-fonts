@@ -1,2 +1,5 @@
 # Sources downloaded by the pipeline, pinned in sources.toml.
 /cache/
+# Fonts made by cmd/export and release/build.py.
+/dist/
+__pycache__/
