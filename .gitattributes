@@ -1,0 +1,4 @@
+# Text in LF everywhere: glyph drawings and manifests are read line by line.
+* text=auto eol=lf
+*.png binary
+*.zip binary

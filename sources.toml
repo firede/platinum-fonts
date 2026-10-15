@@ -1,0 +1,35 @@
+# The fonts the faces are assembled from, pinned. The pipeline downloads
+# each artifact into cache/ and refuses one whose SHA-256 differs.
+
+[fusion-pixel-12-proportional]
+# CJK of the System and App faces.
+repository = "https://github.com/TakWolf/fusion-pixel-font"
+version = "2026.09.25"
+url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/2026.09.25/fusion-pixel-font-12px-proportional-bdf-v2026.09.25.zip"
+sha256 = "7cae5ea83b46086f146002d194d46bbba70ec7264ac3a309219f5ad491626cef"
+license = "OFL-1.1"
+
+[fusion-pixel-12-monospaced]
+# Latin (Ark Pixel's) and CJK of the Mono face, on a grid of 6×12 cells.
+repository = "https://github.com/TakWolf/fusion-pixel-font"
+version = "2026.09.25"
+url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/2026.09.25/fusion-pixel-font-12px-monospaced-bdf-v2026.09.25.zip"
+sha256 = "d75f5262f108757edb0f47ee8e3d2dfdfbecfd94558faf5ffb0c06dc5866fb3b"
+license = "OFL-1.1"
+
+[akr-pixel-ligatures]
+# Programming ligatures of the Mono face, hand-drawn on Fusion Pixel's
+# 12px monospaced grid.
+repository = "https://github.com/AkaraChen/font"
+commit = "61efafc05073dc6a97c715aeb960516e78f1a2f6"
+url = "https://raw.githubusercontent.com/AkaraChen/font/61efafc05073dc6a97c715aeb960516e78f1a2f6/pixel/ligatures/ligatures.txt"
+sha256 = "b2c5fad418340b05b89aeedbe9494fc5c9b925bf8ebbd9f8bb53f71304bcd98f"
+license = "OFL-1.1"
+
+[nerd-fonts-symbols]
+# Icons of the Mono face, rasterized onto the grid.
+repository = "https://github.com/ryanoasis/nerd-fonts"
+version = "v3.5.1"
+url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/NerdFontsSymbolsOnly.zip"
+sha256 = "fdca3682534f6f65e1ccb2345b0362ccf67d9b8eca7c8025330946e93e2473bc"
+license = "MIT, with the icon sets' own (OFL-1.1, Apache-2.0, CC-BY-4.0 and others)"
