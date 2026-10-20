@@ -6,8 +6,11 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"strings"
 
 	"github.com/firede/platinum-fonts/bitmap"
+	"github.com/firede/platinum-fonts/internal/cells"
+	"github.com/firede/platinum-fonts/internal/grid"
 )
 
 // The specimen's width, in pixels of the faces, and the scale it is drawn
@@ -36,9 +39,9 @@ var regions = []struct {
 }
 
 // specimen draws the faces: the Latin families in each style, the East
-// Asian faces of each region in Regular and Bold, and menu bars of their
-// bold, as a PNG.
-func specimen(latin []latinFace, cjk *cjkMade) ([]byte, error) {
+// Asian faces of each region in Regular and Bold, menu bars of their bold,
+// and Platinum Mono in a terminal, as a PNG.
+func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 	face := func(family, style string) *bitmap.Face {
 		for _, l := range latin {
 			if l.family == family && l.style == style {
@@ -122,6 +125,39 @@ func specimen(latin []latinFace, cjk *cjkMade) ([]byte, error) {
 			text(menu, clock, specimenW-m-10-bitmap.Measure(menu, clock), y+14, ink, 1)
 			y += 20
 		}
+
+		section("Mono: Regular and Bold")
+		monoText := bitmap.Fallback(mono.regular, monoEastAsian{regular["zhhans"]})
+		monoBold := bitmap.Fallback(mono.bold, monoEastAsian{bold["zhhans"]})
+		y += 6
+		for i, line := range monoBox("main.go", 40, "func main() {", `    fmt.Println("你好，世界") // 问候`, "}") {
+			text(monoText, line, m, y+grid.Ascent+grid.H*i, ink, 1)
+		}
+		x := m + 46*grid.W
+		for i, line := range []string{"", "▁▂▃▄▅▆▇█▇▆", "⣀⣠⣤⣴⣶⣾⣿⣷⣦⣄", "░░▒▒▓▓██▓▒", ""} {
+			text(monoText, line, x, y+grid.Ascent+grid.H*i, ink, 1)
+		}
+		y += 5*grid.H + 8
+		// A prompt of Powerline segments, in Bold.
+		x = m
+		segments := []struct {
+			s      string
+			fg, bg color.Color
+		}{{" ~/fonts ", paper, ink}, {" main ", ink, barFace}}
+		for i, seg := range segments {
+			w := bitmap.Measure(monoBold, seg.s)
+			rect(x, y, w, grid.H, seg.bg)
+			text(monoBold, seg.s, x, y+grid.Ascent, seg.fg, 1)
+			x += w
+			next := color.Color(paper)
+			if i+1 < len(segments) {
+				next = segments[i+1].bg
+			}
+			rect(x, y, grid.W, grid.H, next)
+			x = text(monoBold, "\uE0B0", x, y+grid.Ascent, seg.bg, 1)
+		}
+		text(monoBold, " go test ./... ", x, y+grid.Ascent, ink, 1)
+		y += grid.H
 		return y + m
 	}
 	h := draw(nil)
@@ -147,4 +183,39 @@ func regionFaces(cjk *cjkMade, pkg string) (regular, bold *bitmap.Face, err erro
 		}
 	}
 	return nil, nil, fmt.Errorf("no package %s in cjk12", pkg)
+}
+
+// monoBox returns lines of a box drawn with box drawing characters around
+// lines of text inner cells wide, its title on its top.
+func monoBox(title string, inner int, lines ...string) []string {
+	width := func(s string) int {
+		n := 0
+		for _, r := range s {
+			n += cells.Of(r)
+		}
+		return n
+	}
+	out := []string{"╭─ " + title + " " + strings.Repeat("─", inner-width(title)-1) + "╮"}
+	for _, l := range lines {
+		out = append(out, "│ "+l+strings.Repeat(" ", inner-width(l))+" │")
+	}
+	return append(out, "╰"+strings.Repeat("─", inner+2)+"╯")
+}
+
+// monoEastAsian is a face of cjk12 as mono.EastAsian sets it, which the
+// build cannot import: a row lower, each glyph advancing the cells of its
+// character, those that do not fit them left out.
+type monoEastAsian struct{ f *bitmap.Face }
+
+func (e monoEastAsian) Glyph(r rune) (bitmap.Glyph, bool) {
+	g, ok := e.f.Glyph(r)
+	if !ok {
+		return bitmap.Glyph{}, false
+	}
+	g = g.Add(image.Pt(0, 1))
+	g.Advance = cells.Of(r) * grid.W
+	if !g.Bounds.In(image.Rect(0, -grid.Ascent, g.Advance, grid.H-grid.Ascent)) {
+		return bitmap.Glyph{}, false
+	}
+	return g, true
 }

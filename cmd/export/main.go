@@ -20,19 +20,25 @@ import (
 	"github.com/firede/platinum-fonts/cjk12/zhhans"
 	"github.com/firede/platinum-fonts/cjk12/zhhant"
 	"github.com/firede/platinum-fonts/internal/bdf"
+	"github.com/firede/platinum-fonts/mono"
 	"github.com/firede/platinum-fonts/sans"
 	"github.com/firede/platinum-fonts/sanssmall"
 )
 
 type styles struct{ regular, bold func() *bitmap.Face }
 
-var families = []struct {
+type family struct {
 	name               string
 	latin              styles
 	capHeight, xHeight int
-}{
-	{"Platinum Sans", styles{sans.Regular, sans.Bold}, 9, 6},
-	{"Platinum Sans Small", styles{sanssmall.Regular, sanssmall.Bold}, 8, 5},
+	// For a monospaced family, how it sets the East Asian glyphs.
+	eastAsian func(bitmap.Font) bitmap.Font
+}
+
+var families = []family{
+	{"Platinum Sans", styles{sans.Regular, sans.Bold}, 9, 6, nil},
+	{"Platinum Sans Small", styles{sanssmall.Regular, sanssmall.Bold}, 8, 5, nil},
+	{"Platinum Mono", styles{mono.Regular, mono.Bold}, 8, 6, mono.EastAsian},
 }
 
 var regions = []struct {
@@ -66,7 +72,7 @@ func main() {
 			} {
 				family := fam.name + " " + reg.suffix
 				path := filepath.Join(*out, strings.ReplaceAll(family, " ", "")+"-"+st.name+".bdf")
-				if err := export(path, family, st.name, fam.capHeight, fam.xHeight, st.latin(), st.cjk()); err != nil {
+				if err := export(path, family, st.name, fam, st.latin(), st.cjk()); err != nil {
 					log.Fatal(err)
 				}
 				fmt.Println("wrote", path)
@@ -75,18 +81,21 @@ func main() {
 	}
 }
 
-// export writes the font of family and style: latin's glyphs, and cjk's
-// where latin has none. Its ascent and descent are those of the ink of its
-// glyphs.
-func export(path, family, style string, capHeight, xHeight int, latin, cjk *bitmap.Face) error {
+// export writes the font of family and style: latin's glyphs, and cjk's,
+// as fam sets them, where latin has none. Its ascent and descent are those
+// of the ink of its glyphs.
+func export(path, family, style string, fam family, latin, cjk *bitmap.Face) error {
 	glyphs := map[rune]bitmap.Glyph{}
 	ascent, descent := 0, 0
-	add := func(f *bitmap.Face) {
+	add := func(f *bitmap.Face, font bitmap.Font) {
 		f.Runes(func(r rune) bool {
 			if _, ok := glyphs[r]; ok {
 				return true
 			}
-			g, _ := f.Glyph(r)
+			g, ok := font.Glyph(r)
+			if !ok {
+				return true
+			}
 			glyphs[r] = g
 			if r != 0x3031 && r != 0x3032 { // marks of vertical text, two cells tall
 				top, bottom := ink(g)
@@ -95,22 +104,28 @@ func export(path, family, style string, capHeight, xHeight int, latin, cjk *bitm
 			return true
 		})
 	}
-	add(latin)
-	add(cjk)
+	spacing := "P"
+	var cjkFont bitmap.Font = cjk
+	if fam.eastAsian != nil {
+		spacing, cjkFont = "M", fam.eastAsian(cjk)
+	}
+	add(latin, latin)
+	add(cjk, cjkFont)
 	notdef, ok := latin.Glyph(0xFFFD)
 	if !ok {
 		return fmt.Errorf("%s %s has no U+FFFD for .notdef", family, style)
 	}
 	h := bdf.Header{
-		Name:      fmt.Sprintf("-Platinum-%s-%s-R-Normal--%d-%d-75-75-P-0-ISO10646-1", family, style, pixelSize, pixelSize*10),
+		Name:      fmt.Sprintf("-Platinum-%s-%s-R-Normal--%d-%d-75-75-%s-0-ISO10646-1", family, style, pixelSize, pixelSize*10, spacing),
 		PixelSize: pixelSize,
 		Ascent:    ascent,
 		Descent:   descent,
 		Properties: map[string]string{
 			"FAMILY_NAME":  fmt.Sprintf("%q", family),
 			"WEIGHT_NAME":  fmt.Sprintf("%q", style),
-			"CAP_HEIGHT":   fmt.Sprint(capHeight),
-			"X_HEIGHT":     fmt.Sprint(xHeight),
+			"SPACING":      fmt.Sprintf("%q", spacing),
+			"CAP_HEIGHT":   fmt.Sprint(fam.capHeight),
+			"X_HEIGHT":     fmt.Sprint(fam.xHeight),
 			"DEFAULT_CHAR": fmt.Sprint(0xFFFD),
 		},
 	}

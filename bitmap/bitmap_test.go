@@ -88,6 +88,17 @@ func TestMask(t *testing.T) {
 	}
 }
 
+func TestAdd(t *testing.T) {
+	g := glyphOf(4, 2, "#.", ".#")
+	m := g.Add(image.Pt(1, 1))
+	if m.Advance != 4 || m.Bounds != image.Rect(1, -1, 3, 1) {
+		t.Fatalf("advance %d, bounds %v", m.Advance, m.Bounds)
+	}
+	if !m.At(1, -1) || m.At(2, -1) || m.At(1, 0) || !m.At(2, 0) {
+		t.Error("the pixels did not move with the glyph")
+	}
+}
+
 func TestDecodeRejectsCorrupt(t *testing.T) {
 	data, _ := Encode(2, 1, map[rune]Glyph{'x': glyphOf(4, 2, "#.#", ".#.", "#.#")})
 	for i := range data {

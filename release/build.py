@@ -49,6 +49,8 @@ def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
 
     family = props['FAMILY_NAME']
     bold = props['WEIGHT_NAME'] == 'Bold'
+    mono = props.get('SPACING') == 'M'
+    builder.opentype_config.is_fixed_pitch = mono
     meta = builder.meta_info
     meta.version = version
     meta.created_time = date
@@ -57,10 +59,14 @@ def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
     meta.weight_name = WeightName.BOLD if bold else WeightName.REGULAR
     meta.serif_style = SerifStyle.SANS_SERIF
     meta.slant_style = SlantStyle.NORMAL
-    meta.width_style = WidthStyle.PROPORTIONAL
+    meta.width_style = WidthStyle.MONOSPACED if mono else WidthStyle.PROPORTIONAL
     meta.manufacturer = 'Platinum Fonts'
-    meta.designer = 'Firede; TakWolf and others (East Asian glyphs, from Fusion Pixel Font)'
-    meta.description = f'{family}: a bitmap face on a {size}px grid. Use it at multiples of {size}px.'
+    if mono:
+        meta.designer = 'Firede; TakWolf and others (Latin and East Asian glyphs, from Fusion Pixel Font)'
+        meta.description = f'{family}: a monospaced bitmap face for terminals and code, in cells {size // 2}px wide and {size}px tall. Use it at multiples of {size}px.'
+    else:
+        meta.designer = 'Firede; TakWolf and others (East Asian glyphs, from Fusion Pixel Font)'
+        meta.description = f'{family}: a bitmap face on a {size}px grid. Use it at multiples of {size}px.'
     meta.copyright_info = copyright_lines()
     meta.license_info = 'This Font Software is licensed under the SIL Open Font License, Version 1.1.'
     meta.vendor_url = REPOSITORY
@@ -94,7 +100,7 @@ def postscript_name(builder: FontBuilder) -> str:
 def finish(builder: FontBuilder, fb) -> None:
     """Names the font as PostScript names are written, and marks its style
     where Windows and macOS look for it, so that Regular and Bold make a
-    family."""
+    family; and a monospaced font as monospaced, where Windows looks."""
     ps = postscript_name(builder)
     names = fb.font['name']
     for record in list(names.names):
@@ -105,6 +111,9 @@ def finish(builder: FontBuilder, fb) -> None:
     bold = builder.meta_info.weight_name == WeightName.BOLD
     fb.font['OS/2'].fsSelection = 0x20 if bold else 0x40
     fb.font['head'].macStyle = 0x01 if bold else 0x00
+    if builder.meta_info.width_style == WidthStyle.MONOSPACED:
+        panose = fb.font['OS/2'].panose
+        panose.bFamilyType, panose.bProportion = 2, 9  # Latin text, monospaced
 
 
 def save(builder: FontBuilder, fmt: str, path: Path) -> None:

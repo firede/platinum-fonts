@@ -51,6 +51,12 @@ func (g Glyph) At(x, y int) bool {
 	return g.bits[i/8]&(0x80>>(i%8)) != 0
 }
 
+// Add returns g moved by p.
+func (g Glyph) Add(p image.Point) Glyph {
+	g.Bounds = g.Bounds.Add(p)
+	return g
+}
+
 // Mask returns the glyph as an alpha mask whose bounds are the glyph's,
 // from the dot: opaque where it is ink.
 func (g Glyph) Mask() *image.Alpha {

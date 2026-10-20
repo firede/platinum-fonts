@@ -42,7 +42,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := buildDocs(latin, cjk, out); err != nil {
+	mono, err := buildMono(sources, *cache, cjk, out)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := buildDocs(latin, cjk, mono, out); err != nil {
 		log.Fatal(err)
 	}
 

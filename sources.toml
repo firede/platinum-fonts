@@ -10,7 +10,8 @@ sha256 = "7cae5ea83b46086f146002d194d46bbba70ec7264ac3a309219f5ad491626cef"
 license = "OFL-1.1"
 
 [fusion-pixel-12-monospaced]
-# Latin (Ark Pixel's) and CJK of the Mono face, on a grid of 6×12 cells.
+# Latin (Ark Pixel's) and symbols of the Mono face, on a grid of 6×12
+# cells, and the East Asian glyphs it sets otherwise than cjk12.
 repository = "https://github.com/TakWolf/fusion-pixel-font"
 version = "2026.09.25"
 url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/2026.09.25/fusion-pixel-font-12px-monospaced-bdf-v2026.09.25.zip"
