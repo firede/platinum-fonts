@@ -54,7 +54,7 @@ func TestFaces(t *testing.T) {
 			}
 			return true
 		})
-		for _, r := range "Aa1{}�─█⣿Ａｇ" {
+		for _, r := range "Aa1{}�─█⣿Ａｇ—→■✓❯≠" {
 			if !f.Has(r) {
 				t.Errorf("does not draw %q", r)
 			}
@@ -109,6 +109,7 @@ func TestSamples(t *testing.T) {
 		"│ (i)=>i+1│ ⣿⡇⢸⠿ ░▒▓ │",
 		"└─────────┴──────────┘",
 		" main   ",
+		"❯ go test ✓ — a→b ≠ ≤ ■●★ ⌘⇧",
 	}
 	for _, s := range []struct {
 		name string

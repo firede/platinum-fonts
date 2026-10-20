@@ -24,7 +24,7 @@ import (
 )
 
 // Glyphs is the number of characters each face draws.
-const Glyphs = 1358
+const Glyphs = 1472
 
 //go:embed regular.bin
 var dataRegular []byte

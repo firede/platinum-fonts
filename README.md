@@ -54,7 +54,9 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   tall. A character takes the cells `mono.Cells` reports, East Asian Width
   as `wcwidth` computes it, Ambiguous 1 cell; its glyph advances as far,
   and glyphs too wide for their cells are left out. Latin and symbols are
-  Fusion Pixel 12px monospaced's. Box drawing, blocks, braille and
+  Fusion Pixel 12px monospaced's; about a hundred frequent symbols it
+  draws 2 cells wide or lacks, as — → ■ ✓ ≠, are drawn in
+  [`glyphs/mono.txt`](glyphs/mono.txt). Box drawing, blocks, braille and
   Powerline separators are generated to fill their cells and meet their
   neighbours'. East Asian glyphs are `cjk12`'s, set a row lower by
   `mono.EastAsian`. Bold is emboldened within the cells, gaps of 1 pixel
@@ -96,8 +98,6 @@ For Platinum Mono:
 - Nerd Fonts icons, rasterized to the grid: each advances 1 cell, its ink
   up to 2 cells wide, as in Nerd Font (not Nerd Font Mono), and wants a
   space after it. Frequently used icons are corrected by hand.
-- Narrow drawings of frequent symbols the source draws 2 cells wide, as
-  — ← → ■ ● ①.
 
 ## Build
 

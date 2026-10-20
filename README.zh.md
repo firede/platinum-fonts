@@ -46,7 +46,9 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
   [docs/coverage.md](docs/coverage.md)。
 - Platinum Mono：用于终端与代码，格子宽 6 像素、高 12 像素。字符占的格数由
   `mono.Cells` 给出：按 `wcwidth` 的规则取东亚宽度属性，Ambiguous 为 1 格；字形的
-  步进与之相同，放不进格子的字形不收录。西文与符号取自缝合像素字体 12px 等宽版。
+  步进与之相同，放不进格子的字形不收录。西文与符号取自缝合像素字体 12px 等宽版；
+  它画成 2 格宽或没有收录的约一百个常用符号（如 — → ■ ✓ ≠）在
+  [`glyphs/mono.txt`](glyphs/mono.txt) 中画成 1 格宽。
   框线、方块、盲文和 Powerline 分隔符由程序生成，填满格子并与相邻格子相接。东亚
   文字字形取自 `cjk12`，由 `mono.EastAsian` 下移 1 行放进格子。Bold 在格子内加粗，
   保留 1 像素的笔画空隙；程序生成的字形两种样式相同。
@@ -84,7 +86,6 @@ Platinum Mono 还将加入：
   不含连字。
 - Nerd Fonts 图标，栅格化到网格上：步进 1 格，墨迹最宽 2 格，与 Nerd Font（而非
   Nerd Font Mono）相同，后面需要跟一个空格。常用图标手工修正。
-- 来源中画成 2 格宽的常用符号的窄版手绘，如 — ← → ■ ● ①。
 
 ## 构建
 
