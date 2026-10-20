@@ -60,7 +60,8 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   Powerline separators are generated to fill their cells and meet their
   neighbours'. East Asian glyphs are `cjk12`'s, set a row lower by
   `mono.EastAsian`. Bold is emboldened within the cells, gaps of 1 pixel
-  kept open; the generated glyphs are the same in both styles.
+  and the column between characters kept open; the generated glyphs are
+  the same in both styles.
 
 ## Usage
 

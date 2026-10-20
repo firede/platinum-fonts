@@ -205,10 +205,16 @@ func fit(r rune, g bitmap.Glyph) (bitmap.Glyph, bool) {
 }
 
 // emboldenInCells returns g emboldened by bitmap.EmboldenGlyphOpen,
-// advancing as far as g: what would leave its cells is left out.
+// advancing as far as g: what would leave its cells is left out, and so
+// is what would fill their last column if g leaves it clear, to keep
+// characters apart.
 func emboldenInCells(g bitmap.Glyph) bitmap.Glyph {
 	b := bitmap.EmboldenGlyphOpen(g)
-	box := b.Bounds.Intersect(image.Rect(0, b.Bounds.Min.Y, g.Advance, b.Bounds.Max.Y))
+	limit := g.Advance
+	if inkBox(g).Max.X < g.Advance {
+		limit--
+	}
+	box := b.Bounds.Intersect(image.Rect(0, b.Bounds.Min.Y, limit, b.Bounds.Max.Y))
 	return bitmap.NewGlyph(g.Advance, box, b.At)
 }
 

@@ -204,7 +204,8 @@ func monoBox(title string, inner int, lines ...string) []string {
 
 // monoEastAsian is a face of cjk12 as mono.EastAsian sets it, which the
 // build cannot import: a row lower, each glyph advancing the cells of its
-// character, those that do not fit them left out.
+// character, the last column of them clear, those that do not fit them
+// left out.
 type monoEastAsian struct{ f *bitmap.Face }
 
 func (e monoEastAsian) Glyph(r rune) (bitmap.Glyph, bool) {
@@ -216,6 +217,13 @@ func (e monoEastAsian) Glyph(r rune) (bitmap.Glyph, bool) {
 	g.Advance = cells.Of(r) * grid.W
 	if !g.Bounds.In(image.Rect(0, -grid.Ascent, g.Advance, grid.H-grid.Ascent)) {
 		return bitmap.Glyph{}, false
+	}
+	// cjk12's Bold fills the last column; keep it clear, as Regular does,
+	// to keep characters apart.
+	if g.Bounds.Max.X == g.Advance && g.Advance > 0 {
+		box := g.Bounds
+		box.Max.X--
+		g = bitmap.NewGlyph(g.Advance, box, g.At)
 	}
 	return g, true
 }

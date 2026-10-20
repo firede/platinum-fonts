@@ -51,7 +51,7 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
   [`glyphs/mono.txt`](glyphs/mono.txt) 中画成 1 格宽。
   框线、方块、盲文和 Powerline 分隔符由程序生成，填满格子并与相邻格子相接。东亚
   文字字形取自 `cjk12`，由 `mono.EastAsian` 下移 1 行放进格子。Bold 在格子内加粗，
-  保留 1 像素的笔画空隙；程序生成的字形两种样式相同。
+  保留 1 像素的笔画空隙和字符之间的那一列；程序生成的字形两种样式相同。
 
 ## 用法
 

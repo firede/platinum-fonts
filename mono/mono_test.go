@@ -73,7 +73,7 @@ func TestEastAsian(t *testing.T) {
 		bounds  image.Rectangle
 	}{
 		{mono.EastAsian(zhhans.Regular()), '中', 12, image.Rect(0, -9, 11, 2)},
-		{mono.EastAsian(zhhans.Bold()), '中', 12, image.Rect(0, -9, 12, 2)},
+		{mono.EastAsian(zhhans.Bold()), '中', 12, image.Rect(0, -9, 11, 2)},
 		{mono.EastAsian(zhhans.Regular()), '，', 12, image.Rect(2, -2, 4, 2)},
 	} {
 		g, ok := c.font.Glyph(c.r)
