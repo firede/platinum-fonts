@@ -13,15 +13,15 @@ Drawn for this repository, in [glyphs](glyphs). Copyright (c) 2026, Firede (http
 
 Source: [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font) 2026.09.25, 12px, monospaced: its Latin and
 symbols, and the East Asian glyphs it sets otherwise than cjk12. Each
-glyph is set in the cells of its character; those too wide for them are
-left out.
+glyph is set in the cells of its character, a column wider and two rows
+taller than its source's; those too wide for them are left out.
 
 Box drawing, blocks, braille and Powerline separators are drawn by
 [internal/grid](internal/grid), and other glyphs in
 [glyphs/mono.txt](glyphs/mono.txt), for this repository. Copyright (c) 2026, Firede (https://github.com/firede).
 
-Ligatures: [AKR Pixel](https://github.com/AkaraChen/font) 61efafc, drawn on the same grid; each is cut into
-a slice per cell, and Bold emboldens them. MIT License,
+Ligatures: [AKR Pixel](https://github.com/AkaraChen/font) 61efafc, drawn on Fusion Pixel's cells and widened
+likewise; each is cut into a slice per cell, and Bold emboldens them. MIT License,
 [licenses/akr-pixel/LICENSE.txt](licenses/akr-pixel/LICENSE.txt): Copyright (c) 2026 AkaraChen.
 
 ## cjk12

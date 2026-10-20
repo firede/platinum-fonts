@@ -3,9 +3,9 @@
 // patterns and Powerline's separators.
 //
 // A cell is W pixels wide and H tall, Ascent of them over the baseline.
-// Light lines run along column 2 and row 6, where the strokes of | and -
-// are; heavy lines are two pixels thick, over columns 2 and 3 and rows 5
-// and 6; the strokes of double lines stand a pixel either side of the
+// Light lines run along column 3 and row 7, where the strokes of | and -
+// are; heavy lines are two pixels thick, over columns 3 and 4 and rows 6
+// and 7; the strokes of double lines stand a pixel either side of the
 // light line, as the bars of = do.
 package grid
 
@@ -18,7 +18,7 @@ import (
 )
 
 // The cell, in pixels.
-const W, H, Ascent = 6, 12, 10
+const W, H, Ascent = 7, 14, 11
 
 // cell is a cell's pixels, row by row from the top.
 type cell [H][W]bool
@@ -76,7 +76,7 @@ const (
 )
 
 // The light lines.
-const midX, midY = 2, 6
+const midX, midY = 3, 7
 
 // cols returns the columns of a vertical line of weight w.
 func cols(w int) []int {
@@ -147,20 +147,21 @@ func boxes(add func(rune, cell)) {
 		add(r, box(a[0], a[1], a[2], a[3]))
 	}
 
-	// Dashes: double, triple and quadruple, light and heavy. A cell is too
-	// narrow for four dashes across; those have three.
-	dashes := func(r rune, w int, vertical bool, on func(int) bool) {
+	// Dashes: double, triple and quadruple, light and heavy, as patterns
+	// of a cell's columns or rows. A cell is too narrow for four dashes
+	// across; those have three.
+	dashes := func(r rune, w int, vertical bool, pattern string) {
 		var c cell
 		if vertical {
 			for _, x := range cols(w) {
 				for y := range H {
-					c[y][x] = on(y)
+					c[y][x] = pattern[y] == '#'
 				}
 			}
 		} else {
 			for _, y := range rows(w) {
 				for x := range W {
-					c[y][x] = on(x)
+					c[y][x] = pattern[x] == '#'
 				}
 			}
 		}
@@ -168,12 +169,12 @@ func boxes(add func(rune, cell)) {
 	}
 	for _, w := range []int{light, heavy} {
 		k := rune(w - light)
-		dashes(0x2504+k, w, false, func(x int) bool { return x%2 == 0 })
-		dashes(0x2506+k, w, true, func(y int) bool { return y%4 < 2 })
-		dashes(0x2508+k, w, false, func(x int) bool { return x%2 == 0 })
-		dashes(0x250A+k, w, true, func(y int) bool { return y%3 < 2 })
-		dashes(0x254C+k, w, false, func(x int) bool { return x%3 < 2 })
-		dashes(0x254E+k, w, true, func(y int) bool { return y%6 < 4 })
+		dashes(0x2504+k, w, false, ".#.#.#.")
+		dashes(0x2506+k, w, true, "###..###..###.")
+		dashes(0x2508+k, w, false, ".#.#.#.")
+		dashes(0x250A+k, w, true, ".##.##..##.##.")
+		dashes(0x254C+k, w, false, ".##.##.")
+		dashes(0x254E+k, w, true, ".#####..#####.")
 	}
 
 	// Arcs: the corner's pixel left out, its arms meeting at a slant.
@@ -305,8 +306,10 @@ func maxOf(v []int) int {
 func eighths(k, n int) int { return (k*n + 4) / 8 }
 
 func blocks(add func(rune, cell)) {
+	// The halves: the left is the wider where W is odd, as eighths round.
+	halfW, halfH := eighths(4, W), eighths(4, H)
 	var c cell
-	c.fill(0, 0, W-1, H/2-1)
+	c.fill(0, 0, W-1, halfH-1)
 	add(0x2580, c) // upper half
 	for k := 1; k <= 8; k++ {
 		var c cell
@@ -319,15 +322,18 @@ func blocks(add func(rune, cell)) {
 		add(0x2589+rune(7-k), c) // left eighths
 	}
 	c = cell{}
-	c.fill(W/2, 0, W-1, H-1)
+	c.fill(halfW, 0, W-1, H-1)
 	add(0x2590, c) // right half
 
-	// Shades of a quarter, a half and three quarters, their dots staggered.
+	// Shades of about a quarter, a half and three quarters: dots on
+	// slanting lattices that repeat every W columns and rows, so that
+	// cells meet without a seam where W is odd.
 	var lightShade, medium, dark cell
 	for y := range H {
 		for x := range W {
-			q := y%2 == 0 && (x+y/2)%2 == 0
-			lightShade[y][x], medium[y][x], dark[y][x] = q, (x+y)%2 == 0, !q
+			q := (x+2*y)%W == 0 || (x+2*y)%W == 3
+			h := (x+y)%W == 0 || (x+y)%W == 2 || (x+y)%W == 4
+			lightShade[y][x], medium[y][x], dark[y][x] = q, h, !q
 		}
 	}
 	add(0x2591, lightShade)
@@ -345,9 +351,9 @@ func blocks(add func(rune, cell)) {
 	const ul, ur, ll, lr = 1, 2, 4, 8
 	for i, q := range []int{ll, lr, ul, ul | ll | lr, ul | lr, ul | ur | ll, ul | ur | lr, ur, ur | ll, ur | ll | lr} {
 		var c cell
-		for k, at := range [][2]int{{0, 0}, {W / 2, 0}, {0, H / 2}, {W / 2, H / 2}} {
+		for k, at := range [][4]int{{0, 0, halfW, halfH}, {halfW, 0, W, halfH}, {0, halfH, halfW, H}, {halfW, halfH, W, H}} {
 			if q&(1<<k) != 0 {
-				c.fill(at[0], at[1], at[0]+W/2-1, at[1]+H/2-1)
+				c.fill(at[0], at[1], at[2]-1, at[3]-1)
 			}
 		}
 		add(0x2596+rune(i), c)
@@ -355,16 +361,17 @@ func blocks(add func(rune, cell)) {
 }
 
 // braille draws the patterns of eight dots, each two pixels square: in
-// two columns and four rows, three pixels apart within a cell and across
-// cells.
+// two columns and four rows, centred in the cell, a pixel apart within a
+// pair and two between pairs and across cells.
 func braille(add func(rune, cell)) {
-	// The column and row of each dot, by its bit.
+	// The column and row of each dot, by its bit, and where they are.
 	dots := [8][2]int{{0, 0}, {0, 1}, {0, 2}, {1, 0}, {1, 1}, {1, 2}, {0, 3}, {1, 3}}
+	xs, ys := [2]int{1, 4}, [4]int{1, 4, 8, 11}
 	for p := range 256 {
 		var c cell
 		for bit, d := range dots {
 			if p&(1<<bit) != 0 {
-				x, y := 3*d[0], 3*d[1]+1
+				x, y := xs[d[0]], ys[d[1]]
 				c.fill(x, y, x+1, y+1)
 			}
 		}

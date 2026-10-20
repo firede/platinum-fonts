@@ -25,6 +25,12 @@ const monoDrawn = "glyphs/mono.txt"
 // ligatures.
 const monoLigatureLicense = "licenses/akr-pixel/LICENSE.txt"
 
+// The grid Fusion Pixel's monospaced fonts and AKR Pixel's ligatures are
+// drawn on: cells srcW pixels wide and srcH tall, srcAscent of them over
+// the baseline. Mono's cells, of package grid, are a column wider and a
+// row taller either side; widen sets glyphs in them.
+const srcW, srcH, srcAscent = 6, 12, 10
+
 // monoMade is what buildMono made, for the docs.
 type monoMade struct {
 	src, ligSrc   *source.Source
@@ -37,10 +43,11 @@ type monoMade struct {
 // buildMono makes Platinum Mono. Its glyphs, the first that has one:
 // those drawn in glyphs/mono.txt; the box drawing, blocks, braille and
 // Powerline separators of package grid; and the glyphs of Fusion Pixel
-// Font's 12px monospaced fonts, set in the cells of their characters. Of
-// the East Asian blocks it keeps only the glyphs that differ from cjk12's
-// set a row lower, as mono.EastAsian sets them, and those that would not
-// fit their cells bold; they must be the same in every region.
+// Font's 12px monospaced fonts, set in the cells of their characters and
+// widened. Of the East Asian blocks it keeps only the glyphs that differ
+// from cjk12's set a row lower, as Fusion Pixel sets them: its fullwidth
+// letters and digits, on the baseline. They must be the same in every
+// region.
 func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, out map[string][]byte) (*monoMade, error) {
 	src := sources["fusion-pixel-12-monospaced"]
 	if src == nil {
@@ -63,8 +70,8 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 		if err != nil {
 			return nil, fmt.Errorf("%s: %v", flavour, err)
 		}
-		if font.Ascent != grid.Ascent || font.Descent != grid.H-grid.Ascent {
-			return nil, fmt.Errorf("%s: ascent %d and descent %d, not the grid's", flavour, font.Ascent, font.Descent)
+		if font.Ascent != srcAscent || font.Descent != srcH-srcAscent {
+			return nil, fmt.Errorf("%s: ascent %d and descent %d, not %d and %d", flavour, font.Ascent, font.Descent, srcAscent, srcH-srcAscent)
 		}
 		return font, nil
 	}
@@ -79,7 +86,7 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 			continue
 		}
 		if g, ok := fit(r, g); ok {
-			glyphs[r] = g
+			glyphs[r] = widen(g)
 		}
 	}
 
@@ -96,10 +103,8 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 			if !inCJK(r) {
 				continue
 			}
-			// A glyph as wide as its cells would grow out of them in
-			// cjk12's Bold; Mono emboldens it within them.
 			c, ok := face.Glyph(r)
-			if !ok || !sameInk(g, c.Add(image.Pt(0, 1))) || c.Bounds.Max.X >= cells.Of(r)*grid.W {
+			if !ok || !sameInk(g, c.Add(image.Pt(0, 1))) {
 				region[r] = g
 			}
 		}
@@ -118,7 +123,7 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 	}
 	for r, g := range differ {
 		if g, ok := fit(r, g); ok {
-			glyphs[r] = g
+			glyphs[r] = widen(g)
 		}
 	}
 
@@ -178,7 +183,8 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 	}
 
 	code, err := generate(monoTemplate, map[string]any{
-		"Version": src.Pinned(), "Glyphs": len(glyphs), "Width": grid.W,
+		"Version": src.Pinned(), "Glyphs": len(glyphs),
+		"Width": grid.W, "Height": grid.H, "Ascent": grid.Ascent,
 		"Ligatures": made.ligTexts, "LigatureSource": made.ligSrc.Repository,
 		"CapHeight": own.CapHeight, "XHeight": own.XHeight,
 	})
@@ -214,7 +220,7 @@ func buildLigatures(made *monoMade, sources map[string]*source.Source, cache str
 		return err
 	}
 	out[monoLigatureLicense] = license
-	ligs, err := ligature.Parse(src.Name, string(text), grid.W, grid.H, grid.Ascent)
+	ligs, err := ligature.Parse(src.Name, string(text), srcW, srcH, srcAscent)
 	if err != nil {
 		return err
 	}
@@ -234,10 +240,11 @@ func buildLigatures(made *monoMade, sources map[string]*source.Source, cache str
 	n := rune(0)
 	for _, l := range ligs {
 		made.ligTexts = append(made.ligTexts, l.Text)
-		b := emboldenInCells(l.Glyph)
+		g := widenCells(l.Glyph)
+		b := emboldenInCells(g)
 		var rs, bs []bitmap.Glyph
 		for i := range len([]rune(l.Text)) {
-			rs = append(rs, ligature.Slice(l.Glyph, i, grid.W))
+			rs = append(rs, ligature.Slice(g, i, grid.W))
 			bs = append(bs, ligature.Slice(b, i, grid.W))
 			regular[n], bold[n] = rs[i], bs[i]
 			n++
@@ -253,12 +260,12 @@ func buildLigatures(made *monoMade, sources map[string]*source.Source, cache str
 	return nil
 }
 
-// fit returns g set in the cells r takes: as it is if it fits them, its
-// ink moved to their middle if it fits only so, or false if it does not
-// fit. The last column of the cells is left for the space between
-// characters when the ink is moved.
+// fit returns g, drawn on cells of srcW, set in the cells r takes: as it
+// is if it fits them, its ink moved to their middle if it fits only so, or
+// false if it does not fit. The last column of the cells is left for the
+// space between characters when the ink is moved.
 func fit(r rune, g bitmap.Glyph) (bitmap.Glyph, bool) {
-	w := cells.Of(r) * grid.W
+	w := cells.Of(r) * srcW
 	ink := inkBox(g)
 	if ink.Empty() {
 		return bitmap.Glyph{Advance: w}, true
@@ -277,17 +284,45 @@ func fit(r rune, g bitmap.Glyph) (bitmap.Glyph, bool) {
 	return g, true
 }
 
+// widen returns g, set in cells of srcW, in cells of grid.W: its ink a
+// column to the right, so that the first column of each character stays
+// clear between it and the one before; the columns the cells gain, on the
+// left and the right, inked where g's ink runs from its last column into
+// its first, as where it meets a copy of itself.
+func widen(g bitmap.Glyph) bitmap.Glyph {
+	w := g.Advance / srcW * grid.W
+	joins := func(y int) bool { return g.At(0, y) && g.At(g.Advance-1, y) }
+	box := image.Rect(0, g.Bounds.Min.Y, w, g.Bounds.Max.Y)
+	return bitmap.NewGlyph(w, box, func(x, y int) bool {
+		if x == 0 || x > g.Advance {
+			return joins(y)
+		}
+		return g.At(x-1, y)
+	})
+}
+
+// widenCells returns g, a ligature drawn on cells of srcW, on cells of
+// grid.W: each cell's ink a column to the right, and the column it gains
+// on its left inked where the ink runs on from the cell before.
+func widenCells(g bitmap.Glyph) bitmap.Glyph {
+	n := g.Advance / srcW
+	box := image.Rect(0, g.Bounds.Min.Y, n*grid.W, g.Bounds.Max.Y)
+	return bitmap.NewGlyph(n*grid.W, box, func(x, y int) bool {
+		i, c := x/grid.W, x%grid.W
+		if c == 0 {
+			return i > 0 && g.At(i*srcW-1, y) && g.At(i*srcW, y)
+		}
+		return g.At(i*srcW+c-1, y)
+	})
+}
+
 // emboldenInCells returns g emboldened by bitmap.EmboldenGlyphOpen,
-// advancing as far as g: what would leave its cells is left out, and so
-// is what would fill their last column if g leaves it clear, to keep
-// characters apart.
+// advancing as far as g: what would leave its cells is left out. The
+// first column of the cells stays clear, as in g, to keep characters
+// apart.
 func emboldenInCells(g bitmap.Glyph) bitmap.Glyph {
 	b := bitmap.EmboldenGlyphOpen(g)
-	limit := g.Advance
-	if inkBox(g).Max.X < g.Advance {
-		limit--
-	}
-	box := b.Bounds.Intersect(image.Rect(0, b.Bounds.Min.Y, limit, b.Bounds.Max.Y))
+	box := b.Bounds.Intersect(image.Rect(0, b.Bounds.Min.Y, g.Advance, b.Bounds.Max.Y))
 	return bitmap.NewGlyph(g.Advance, box, b.At)
 }
 
@@ -325,21 +360,22 @@ func noncharacter(r rune) bool { return r&0xFFFE == 0xFFFE || r >= 0xFDD0 && r <
 var monoTemplate = template.Must(template.New("mono").Parse(`// Code generated by go run ./cmd/build; DO NOT EDIT.
 
 // Package mono contains Platinum Mono, a face for terminals and code on a
-// grid of cells {{.Width}}px wide and 12px tall: ascent 10, cap height {{.CapHeight}}, x-height {{.XHeight}}.
+// grid of cells {{.Width}}px wide and {{.Height}}px tall: ascent {{.Ascent}}, cap height {{.CapHeight}}, x-height {{.XHeight}}.
 // A character takes the cells Cells reports, and its glyph advances as far.
 // Styles: Regular, Bold.
 //
-// Its Latin and symbols are Fusion Pixel Font {{.Version}}'s (monospaced);
-// its box drawing, blocks, braille and Powerline separators are drawn to
-// fill their cells and meet the cells around them. Its East Asian glyphs
-// are those of cjk12, set in its cells by EastAsian.
+// Its Latin and symbols are Fusion Pixel Font {{.Version}}'s (monospaced),
+// a column wider; its box drawing, blocks, braille and Powerline
+// separators are drawn to fill their cells and meet the cells around them.
+// Its East Asian glyphs are those of cjk12, set in its cells by EastAsian.
 //
-// Draw draws its ligatures, hand-drawn for AKR Pixel ({{.LigatureSource}}):
-// each a slice in each cell of its characters.
+// Draw draws its ligatures, hand-drawn for AKR Pixel ({{.LigatureSource}}),
+// widened likewise: each a slice in each cell of its characters.
 //
 // Bold is Regular emboldened within the cells: each glyph drawn again a
-// pixel to its right, gaps of a pixel between strokes kept open. The
-// characters that fill their cells are the same in both styles.
+// pixel to its right, gaps of a pixel between strokes kept open, the
+// first column of the cells clear. The characters that fill their cells
+// are the same in both styles.
 // Glyph data: SIL Open Font License 1.1; see NOTICE.md.
 package mono
 

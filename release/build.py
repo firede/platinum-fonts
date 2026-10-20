@@ -63,8 +63,9 @@ def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
     meta.width_style = WidthStyle.MONOSPACED if mono else WidthStyle.PROPORTIONAL
     meta.manufacturer = 'Platinum Fonts'
     if mono:
+        cell_width = next(g.device_width_x for g in font.glyphs if g.encoding == 0x20)
         meta.designer = 'Firede; TakWolf and others (Latin and East Asian glyphs, from Fusion Pixel Font)'
-        meta.description = f'{family}: a monospaced bitmap face for terminals and code, in cells {size // 2}px wide and {size}px tall. Use it at multiples of {size}px.'
+        meta.description = f'{family}: a monospaced bitmap face for terminals and code, in cells {cell_width}px wide and {ascent + descent}px tall. Use it at multiples of {size}px.'
     else:
         meta.designer = 'Firede; TakWolf and others (East Asian glyphs, from Fusion Pixel Font)'
         meta.description = f'{family}: a bitmap face on a {size}px grid. Use it at multiples of {size}px.'

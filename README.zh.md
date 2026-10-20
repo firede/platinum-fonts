@@ -31,7 +31,7 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
 |---|---|---|---|---|---|---|
 | Platinum Sans | `sans` | Regular、Bold | 9 | 3 | 9 | 6 |
 | Platinum Sans Small | `sanssmall` | Regular、Bold | 8 | 3 | 8 | 5 |
-| Platinum Mono | `mono` | Regular、Bold | 10 | 2 | 8 | 6 |
+| Platinum Mono | `mono` | Regular、Bold | 11 | 3 | 8 | 6 |
 | 东亚文字 12px | `cjk12/zhhans`、`cjk12/zhhant`、`cjk12/ja`、`cjk12/ko` | Regular、Bold | 13 | 3 | | |
 
 上行与下行为 `Face.Ascent` 与 `Face.Descent` 的返回值。
@@ -44,19 +44,21 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
 - `cjk12`：同一批字符的四套地区字形；每个包约 34,600 个字形，635 KB。汉字墨迹
   11×11，从基线下 1 行到基线上 10 行；步进 12。只含东亚文字区块。各字符集覆盖率：
   [docs/coverage.md](docs/coverage.md)。
-- Platinum Mono：用于终端与代码，格子宽 6 像素、高 12 像素。字符占的格数由
-  `mono.Cells` 给出：按 `wcwidth` 的规则取东亚宽度属性，Ambiguous 为 1 格；字形的
-  步进与之相同，放不进格子的字形不收录。西文与符号取自缝合像素字体 12px 等宽版；
-  它画成 2 格宽或没有收录的约一百个常用符号（如 — → ■ ✓ ≠）在
-  [`glyphs/mono.txt`](glyphs/mono.txt) 中画成 1 格宽。
-  框线、方块、盲文和 Powerline 分隔符由程序生成，填满格子并与相邻格子相接。东亚
-  文字字形取自 `cjk12`，由 `mono.EastAsian` 下移 1 行放进格子。Bold 在格子内加粗，
-  保留 1 像素的笔画空隙和字符之间的那一列；程序生成的字形两种样式相同。
+- Platinum Mono：用于终端与代码，格子宽 7 像素、高 14 像素，已含行间距。字符占的
+  格数由 `mono.Cells` 给出：按 `wcwidth` 的规则取东亚宽度属性，Ambiguous 为 1 格；
+  字形的步进与之相同，放不进格子的字形不收录。西文与符号取自缝合像素字体 12px
+  等宽版，原稿画在 6×12 的格子上，放进格子时右移 1 列，每格第一列留作字符之间的
+  空隙；它画成 2 格宽或没有收录的约一百个常用符号（如 — → ■ ✓ ≠）在
+  [`glyphs/mono.txt`](glyphs/mono.txt) 中画成 1 格宽。框线、方块、盲文和 Powerline
+  分隔符由程序生成，填满格子并与相邻格子相接。东亚文字字形取自 `cjk12`，由
+  `mono.EastAsian` 右移 1 列放进格子，与其他字族一样在基线下占 1 行。Bold 在格子
+  内加粗，保留 1 像素的笔画空隙；程序生成的字形两种样式相同。
 - Platinum Mono 连字：共 31 个，如 `=>` `!=` `<=` `->` `::` `/*`，取自
-  [AKR Pixel](https://github.com/AkaraChen/font)，画在同一网格上。连字的每个字符
-  画成连字在它那一格的切片，每个字形仍只前进 1 格。`====`、`....` 这样的连续字符
-  不连。字体中以 OpenType 特性 `calt` 实现（OTF、TTF、WOFF2 和 OTB；不需要时关闭
-  `calt` 即可）；BDF 和 PCF 不含连字。在 Go 中由 `mono.Draw` 绘制。
+  [AKR Pixel](https://github.com/AkaraChen/font)，原稿画在 6×12 的格子上，同样
+  加宽。连字的每个字符画成连字在它那一格的切片，每个字形仍只前进 1 格。`====`、
+  `....` 这样的连续字符不连。字体中以 OpenType 特性 `calt` 实现（OTF、TTF、WOFF2
+  和 OTB；不需要时关闭 `calt` 即可）；BDF 和 PCF 不含连字。在 Go 中由 `mono.Draw`
+  绘制。
 
 ## 用法
 

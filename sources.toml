@@ -11,7 +11,8 @@ license = "OFL-1.1"
 
 [fusion-pixel-12-monospaced]
 # Latin (Ark Pixel's) and symbols of the Mono face, on a grid of 6×12
-# cells, and the East Asian glyphs it sets otherwise than cjk12.
+# cells that Mono widens to 7×14, and the East Asian glyphs it sets
+# otherwise than cjk12.
 repository = "https://github.com/TakWolf/fusion-pixel-font"
 version = "2026.09.25"
 url = "https://github.com/TakWolf/fusion-pixel-font/releases/download/2026.09.25/fusion-pixel-font-12px-monospaced-bdf-v2026.09.25.zip"

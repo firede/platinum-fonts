@@ -34,7 +34,7 @@ suffix selects the regional forms of the East Asian glyphs. The em is
 |---|---|---|---|---|---|---|
 | Platinum Sans | `sans` | Regular, Bold | 9 | 3 | 9 | 6 |
 | Platinum Sans Small | `sanssmall` | Regular, Bold | 8 | 3 | 8 | 5 |
-| Platinum Mono | `mono` | Regular, Bold | 10 | 2 | 8 | 6 |
+| Platinum Mono | `mono` | Regular, Bold | 11 | 3 | 8 | 6 |
 | East Asian, 12px | `cjk12/zhhans`, `cjk12/zhhant`, `cjk12/ja`, `cjk12/ko` | Regular, Bold | 13 | 3 | | |
 
 Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
@@ -50,25 +50,27 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   34,600 glyphs and 635 KB per package. Ideographs: 11×11 ink, from 1 row
   below the baseline to 10 rows above it; advance 12. East Asian blocks
   only. Coverage by national character set: [docs/coverage.md](docs/coverage.md).
-- Platinum Mono: for terminals and code, on cells 6 pixels wide and 12
-  tall. A character takes the cells `mono.Cells` reports, East Asian Width
-  as `wcwidth` computes it, Ambiguous 1 cell; its glyph advances as far,
-  and glyphs too wide for their cells are left out. Latin and symbols are
-  Fusion Pixel 12px monospaced's; about a hundred frequent symbols it
-  draws 2 cells wide or lacks, as — → ■ ✓ ≠, are drawn in
-  [`glyphs/mono.txt`](glyphs/mono.txt). Box drawing, blocks, braille and
-  Powerline separators are generated to fill their cells and meet their
-  neighbours'. East Asian glyphs are `cjk12`'s, set a row lower by
-  `mono.EastAsian`. Bold is emboldened within the cells, gaps of 1 pixel
-  and the column between characters kept open; the generated glyphs are
-  the same in both styles.
+- Platinum Mono: for terminals and code, on cells 7 pixels wide and 14
+  tall, the space between lines included. A character takes the cells
+  `mono.Cells` reports, East Asian Width as `wcwidth` computes it,
+  Ambiguous 1 cell; its glyph advances as far, and glyphs too wide for
+  their cells are left out. Latin and symbols are Fusion Pixel 12px
+  monospaced's, drawn on cells of 6×12 and set a column to the right, so
+  that the first column of each cell stays clear between characters;
+  about a hundred frequent symbols it draws 2 cells wide or lacks, as
+  — → ■ ✓ ≠, are drawn in [`glyphs/mono.txt`](glyphs/mono.txt). Box
+  drawing, blocks, braille and Powerline separators are generated to fill
+  their cells and meet their neighbours'. East Asian glyphs are `cjk12`'s,
+  set a column to the right by `mono.EastAsian`, a row under the baseline
+  as in the other families. Bold is emboldened within the cells, gaps of
+  1 pixel kept open; the generated glyphs are the same in both styles.
 - Platinum Mono ligatures: 31, as `=>` `!=` `<=` `->` `::` `/*`, from
-  [AKR Pixel](https://github.com/AkaraChen/font), drawn on the same grid.
-  Each character of a ligature is drawn as its cell's slice of it, so
-  every glyph still advances one cell. Runs as `====` and `....` are not
-  joined. In the fonts they are the OpenType feature `calt` (OTF, TTF,
-  WOFF2 and OTB; turn `calt` off where they are not wanted); BDF and PCF
-  have none. In Go, `mono.Draw` draws them.
+  [AKR Pixel](https://github.com/AkaraChen/font), drawn on cells of 6×12
+  and widened likewise. Each character of a ligature is drawn as its
+  cell's slice of it, so every glyph still advances one cell. Runs as
+  `====` and `....` are not joined. In the fonts they are the OpenType
+  feature `calt` (OTF, TTF, WOFF2 and OTB; turn `calt` off where they are
+  not wanted); BDF and PCF have none. In Go, `mono.Draw` draws them.
 
 ## Usage
 

@@ -10,9 +10,9 @@ import (
 // The grid: cells CellWidth pixels wide, Ascent rows over the baseline
 // and Descent under it.
 const (
-	CellWidth = 6
-	Ascent    = 10
-	Descent   = 2
+	CellWidth = 7
+	Ascent    = 11
+	Descent   = 3
 )
 
 // Cells returns the cells r takes, as wcwidth computes it: 2 for East
@@ -28,9 +28,10 @@ func Cells(r rune) int {
 }
 
 // EastAsian returns the glyphs of f, a face of cjk12, as Mono sets them: a
-// row lower, each advancing the cells of its character, the last column
-// of them clear. It leaves out the glyphs that do not fit their cells.
-// Regular and Bold draw those that Mono sets otherwise, so they go first:
+// column to the right, so that the first column of the cells stays clear,
+// each advancing the cells of its character. It leaves out the glyphs that
+// do not fit their cells. Regular and Bold draw those that Mono sets
+// otherwise, so they go first:
 //
 //	text := bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular()))
 //	bold := bitmap.Fallback(mono.Bold(), mono.EastAsian(zhhans.Bold()))
@@ -43,17 +44,10 @@ func (e eastAsian) Glyph(r rune) (bitmap.Glyph, bool) {
 	if !ok {
 		return bitmap.Glyph{}, false
 	}
-	g = g.Add(image.Pt(0, 1))
+	g = g.Add(image.Pt(1, 0))
 	g.Advance = Cells(r) * CellWidth
 	if !g.Bounds.In(image.Rect(0, -Ascent, g.Advance, Descent)) {
 		return bitmap.Glyph{}, false
-	}
-	// cjk12's Bold fills the last column; keep it clear, as Regular does,
-	// to keep characters apart.
-	if g.Bounds.Max.X == g.Advance && g.Advance > 0 {
-		box := g.Bounds
-		box.Max.X--
-		g = bitmap.NewGlyph(g.Advance, box, g.At)
 	}
 	return g, true
 }

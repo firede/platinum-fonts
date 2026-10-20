@@ -19,6 +19,8 @@ import (
 
 var update = flag.Bool("update", false, "write the golden images anew")
 
+const lineHeight = mono.Ascent + mono.Descent
+
 func TestCells(t *testing.T) {
 	if mono.UnicodeVersion != cells.UnicodeVersion {
 		t.Fatalf("Unicode %s, not %s", mono.UnicodeVersion, cells.UnicodeVersion)
@@ -72,9 +74,9 @@ func TestEastAsian(t *testing.T) {
 		advance int
 		bounds  image.Rectangle
 	}{
-		{mono.EastAsian(zhhans.Regular()), '中', 12, image.Rect(0, -9, 11, 2)},
-		{mono.EastAsian(zhhans.Bold()), '中', 12, image.Rect(0, -9, 11, 2)},
-		{mono.EastAsian(zhhans.Regular()), '，', 12, image.Rect(2, -2, 4, 2)},
+		{mono.EastAsian(zhhans.Regular()), '中', 14, image.Rect(1, -10, 12, 1)},
+		{mono.EastAsian(zhhans.Bold()), '中', 14, image.Rect(1, -10, 13, 1)},
+		{mono.EastAsian(zhhans.Regular()), '，', 14, image.Rect(3, -3, 5, 1)},
 	} {
 		g, ok := c.font.Glyph(c.r)
 		if !ok || g.Advance != c.advance || g.Bounds != c.bounds {
@@ -122,12 +124,12 @@ func TestSamples(t *testing.T) {
 		for _, l := range lines {
 			w = max(w, bitmap.Measure(s.font, l))
 		}
-		img := image.NewGray(image.Rect(0, 0, w+4, 12*len(lines)+4))
+		img := image.NewGray(image.Rect(0, 0, w+4, lineHeight*len(lines)+4))
 		for i := range img.Pix {
 			img.Pix[i] = 0xFF
 		}
 		for i, l := range lines {
-			bitmap.Draw(img, image.Pt(2, 2+mono.Ascent+12*i), s.font, l, color.Black)
+			bitmap.Draw(img, image.Pt(2, 2+mono.Ascent+lineHeight*i), s.font, l, color.Black)
 		}
 		var got bytes.Buffer
 		if err := png.Encode(&got, img); err != nil {
@@ -197,16 +199,16 @@ func TestLigatures(t *testing.T) {
 
 	w := 0
 	for _, l := range lines {
-		w = max(w, bitmap.Measure(mono.Regular(), l)+12*4)
+		w = max(w, bitmap.Measure(mono.Regular(), l)+2*mono.CellWidth*4)
 	}
-	img := image.NewGray(image.Rect(0, 0, w+4, 2*12*len(lines)+4))
+	img := image.NewGray(image.Rect(0, 0, w+4, 2*lineHeight*len(lines)+4))
 	for i := range img.Pix {
 		img.Pix[i] = 0xFF
 	}
 	for i, l := range lines {
-		y := 2 + mono.Ascent + 24*i
+		y := 2 + mono.Ascent + 2*lineHeight*i
 		mono.Draw(img, image.Pt(2, y), bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular())), mono.Ligatures(), l, color.Black)
-		mono.Draw(img, image.Pt(2, y+12), bitmap.Fallback(mono.Bold(), mono.EastAsian(zhhans.Bold())), mono.BoldLigatures(), l, color.Black)
+		mono.Draw(img, image.Pt(2, y+lineHeight), bitmap.Fallback(mono.Bold(), mono.EastAsian(zhhans.Bold())), mono.BoldLigatures(), l, color.Black)
 	}
 	var got bytes.Buffer
 	if err := png.Encode(&got, img); err != nil {
