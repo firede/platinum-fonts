@@ -10,6 +10,9 @@
 // fill their cells and meet the cells around them. Its East Asian glyphs
 // are those of cjk12, set in its cells by EastAsian.
 //
+// Draw draws its ligatures, hand-drawn for AKR Pixel (https://github.com/AkaraChen/font):
+// each a slice in each cell of its characters.
+//
 // Bold is Regular emboldened within the cells: each glyph drawn again a
 // pixel to its right, gaps of a pixel between strokes kept open. The
 // characters that fill their cells are the same in both styles.
@@ -31,6 +34,48 @@ var dataRegular []byte
 
 //go:embed bold.bin
 var dataBold []byte
+
+//go:embed regular-ligatures.bin
+var dataRegularLigatures []byte
+
+//go:embed bold-ligatures.bin
+var dataBoldLigatures []byte
+
+// ligatureTexts are the characters of the ligatures, in the order Draw
+// tries them; the slices of each follow those of the one before.
+var ligatureTexts = []string{
+	"<!--",
+	"===",
+	"!==",
+	"<=>",
+	"<->",
+	"-->",
+	"<--",
+	"==>",
+	"<==",
+	"...",
+	"///",
+	"/**",
+	"**/",
+	"::=",
+	"==",
+	"!=",
+	"<=",
+	">=",
+	"=>",
+	"->",
+	"<-",
+	"<>",
+	"|>",
+	"<|",
+	"++",
+	"--",
+	"//",
+	"/*",
+	"*/",
+	":=",
+	"::",
+}
 
 var (
 	faceRegular = sync.OnceValue(func() *bitmap.Face { return decode(dataRegular) })

@@ -1,6 +1,8 @@
 // Command export writes the installable fonts of this repository as BDF:
 // each family, with the East Asian glyphs of each region, in each style.
-// release/build.py makes the other formats from them.
+// A family with ligatures has their slices as glyphs of no character, and
+// an OpenType feature file next to each font, of the same name, that draws
+// them. release/build.py makes the other formats from them.
 //
 //	go run ./cmd/export -o dist/bdf
 package main
@@ -20,6 +22,7 @@ import (
 	"github.com/firede/platinum-fonts/cjk12/zhhans"
 	"github.com/firede/platinum-fonts/cjk12/zhhant"
 	"github.com/firede/platinum-fonts/internal/bdf"
+	"github.com/firede/platinum-fonts/internal/ligature"
 	"github.com/firede/platinum-fonts/mono"
 	"github.com/firede/platinum-fonts/sans"
 	"github.com/firede/platinum-fonts/sanssmall"
@@ -27,18 +30,22 @@ import (
 
 type styles struct{ regular, bold func() *bitmap.Face }
 
+type ligatures struct{ regular, bold func() []mono.Ligature }
+
 type family struct {
 	name               string
 	latin              styles
 	capHeight, xHeight int
-	// For a monospaced family, how it sets the East Asian glyphs.
+	// For a monospaced family, how it sets the East Asian glyphs, and its
+	// ligatures.
 	eastAsian func(bitmap.Font) bitmap.Font
+	ligatures ligatures
 }
 
 var families = []family{
-	{"Platinum Sans", styles{sans.Regular, sans.Bold}, 9, 6, nil},
-	{"Platinum Sans Small", styles{sanssmall.Regular, sanssmall.Bold}, 8, 5, nil},
-	{"Platinum Mono", styles{mono.Regular, mono.Bold}, 8, 6, mono.EastAsian},
+	{"Platinum Sans", styles{sans.Regular, sans.Bold}, 9, 6, nil, ligatures{}},
+	{"Platinum Sans Small", styles{sanssmall.Regular, sanssmall.Bold}, 8, 5, nil, ligatures{}},
+	{"Platinum Mono", styles{mono.Regular, mono.Bold}, 8, 6, mono.EastAsian, ligatures{mono.Ligatures, mono.BoldLigatures}},
 }
 
 var regions = []struct {
@@ -66,13 +73,18 @@ func main() {
 			for _, st := range []struct {
 				name       string
 				latin, cjk func() *bitmap.Face
+				ligatures  func() []mono.Ligature
 			}{
-				{"Regular", fam.latin.regular, reg.cjk.regular},
-				{"Bold", fam.latin.bold, reg.cjk.bold},
+				{"Regular", fam.latin.regular, reg.cjk.regular, fam.ligatures.regular},
+				{"Bold", fam.latin.bold, reg.cjk.bold, fam.ligatures.bold},
 			} {
 				family := fam.name + " " + reg.suffix
 				path := filepath.Join(*out, strings.ReplaceAll(family, " ", "")+"-"+st.name+".bdf")
-				if err := export(path, family, st.name, fam, st.latin(), st.cjk()); err != nil {
+				var ligs []mono.Ligature
+				if st.ligatures != nil {
+					ligs = st.ligatures()
+				}
+				if err := export(path, family, st.name, fam, st.latin(), st.cjk(), ligs); err != nil {
 					log.Fatal(err)
 				}
 				fmt.Println("wrote", path)
@@ -82,9 +94,10 @@ func main() {
 }
 
 // export writes the font of family and style: latin's glyphs, and cjk's,
-// as fam sets them, where latin has none. Its ascent and descent are those
-// of the ink of its glyphs.
-func export(path, family, style string, fam family, latin, cjk *bitmap.Face) error {
+// as fam sets them, where latin has none, and the slices of ligs, with the
+// feature that draws them. Its ascent and descent are those of the ink of
+// its glyphs.
+func export(path, family, style string, fam family, latin, cjk *bitmap.Face, ligs []mono.Ligature) error {
 	glyphs := map[rune]bitmap.Glyph{}
 	ascent, descent := 0, 0
 	add := func(f *bitmap.Face, font bitmap.Font) {
@@ -129,11 +142,36 @@ func export(path, family, style string, fam family, latin, cjk *bitmap.Face) err
 			"DEFAULT_CHAR": fmt.Sprint(0xFFFD),
 		},
 	}
+	named := map[string]bitmap.Glyph{}
+	texts := make([]string, len(ligs))
+	for k, l := range ligs {
+		texts[k] = l.Text
+		for i, g := range l.Glyphs {
+			named[sliceName(l.Text, i)] = g
+		}
+	}
 	var b bytes.Buffer
-	if err := bdf.Write(&b, h, &notdef, glyphs); err != nil {
+	if err := bdf.Write(&b, h, &notdef, named, glyphs); err != nil {
 		return err
 	}
-	return os.WriteFile(path, b.Bytes(), 0o644)
+	if err := os.WriteFile(path, b.Bytes(), 0o644); err != nil {
+		return err
+	}
+	if len(ligs) == 0 {
+		return nil
+	}
+	fea := ligature.Feature(texts, bdf.Name, func(k, i int) string { return sliceName(texts[k], i) })
+	return os.WriteFile(strings.TrimSuffix(path, ".bdf")+".fea", []byte(fea), 0o644)
+}
+
+// sliceName returns the name of the slice of the ligature of text in its
+// cell i, as lig.003D_003E.1 for the right of =>.
+func sliceName(text string, i int) string {
+	var hex []string
+	for _, r := range text {
+		hex = append(hex, fmt.Sprintf("%04X", r))
+	}
+	return fmt.Sprintf("lig.%s.%d", strings.Join(hex, "_"), i)
 }
 
 // ink returns how many rows g's ink rises over the baseline and goes under

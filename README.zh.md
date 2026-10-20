@@ -52,6 +52,11 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
   框线、方块、盲文和 Powerline 分隔符由程序生成，填满格子并与相邻格子相接。东亚
   文字字形取自 `cjk12`，由 `mono.EastAsian` 下移 1 行放进格子。Bold 在格子内加粗，
   保留 1 像素的笔画空隙和字符之间的那一列；程序生成的字形两种样式相同。
+- Platinum Mono 连字：共 31 个，如 `=>` `!=` `<=` `->` `::` `/*`，取自
+  [AKR Pixel](https://github.com/AkaraChen/font)，画在同一网格上。连字的每个字符
+  画成连字在它那一格的切片，每个字形仍只前进 1 格。`====`、`....` 这样的连续字符
+  不连。字体中以 OpenType 特性 `calt` 实现（OTF、TTF、WOFF2 和 OTB；不需要时关闭
+  `calt` 即可）；BDF 和 PCF 不含连字。在 Go 中由 `mono.Draw` 绘制。
 
 ## 用法
 
@@ -72,6 +77,7 @@ w := bitmap.Measure(bold, "Hello")
 
 term := bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular()))
 n := mono.Cells('中')                       // 2：其字形步进 2 * mono.CellWidth
+end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // 带连字
 ```
 
 - 坐标以基线上的原点为基准，y 轴向下。
@@ -79,13 +85,8 @@ n := mono.Cells('中')                       // 2：其字形步进 2 * mono.Cel
 
 ## 计划
 
-Platinum Mono 还将加入：
-
-- AKR Pixel 连字，在 OpenType 中通过 `calt` 实现：连字的每个字符替换为连字在它那
-  一格的切片，每个字形仍只前进 1 格。不需要连字时关闭 `calt` 即可；BDF、PCF 和 OTB
-  不含连字。
-- Nerd Fonts 图标，栅格化到网格上：步进 1 格，墨迹最宽 2 格，与 Nerd Font（而非
-  Nerd Font Mono）相同，后面需要跟一个空格。常用图标手工修正。
+Platinum Mono 还将加入 Nerd Fonts 图标，栅格化到网格上：步进 1 格，墨迹最宽 2 格，
+与 Nerd Font（而非 Nerd Font Mono）相同，后面需要跟一个空格。常用图标手工修正。
 
 ## 构建
 
@@ -107,8 +108,8 @@ python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
 推送 `vX.Y.Z` 形式的 tag 时，`.github/workflows/release.yml` 执行相同的步骤，并把
 zip 附到对应的 Release。
 
-生成的文件：`sans/*`、`sanssmall/*`、`cjk12/*/*` 与 `mono/*`（测试、`testdata` 与
-`mono/cells.go` 除外）、
+生成的文件：`sans/*`、`sanssmall/*`、`cjk12/*/*` 与 `mono/*`（测试、`testdata`、
+`mono/cells.go` 与 `mono/ligatures.go` 除外）、
 `docs/coverage.md`、`docs/specimen.png`、`licenses/`、`NOTICE.md`、`OFL.txt`。
 
 `glyphs/*.txt` 的格式见 [`internal/drawn`](internal/drawn/drawn.go)。
@@ -116,5 +117,6 @@ zip 附到对应的 Release。
 ## 许可
 
 - 字形数据与字体：SIL Open Font License 1.1（[OFL.txt](OFL.txt)）。来源及其许可见
-  [NOTICE.md](NOTICE.md) 和 [licenses](licenses)。
+  [NOTICE.md](NOTICE.md) 和 [licenses](licenses)；Platinum Mono 的连字取自 AKR
+  Pixel，采用 MIT 许可证。
 - 代码：MIT（[LICENSE](LICENSE)）。

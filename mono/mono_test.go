@@ -149,3 +149,81 @@ func TestSamples(t *testing.T) {
 		}
 	}
 }
+
+// TestLigatures checks that each ligature draws a cell for each of its
+// characters, and compares lines of them with testdata/ligatures.png.
+func TestLigatures(t *testing.T) {
+	cell := image.Rect(0, -mono.Ascent, mono.CellWidth, mono.Descent)
+	for _, ligs := range [][]mono.Ligature{mono.Ligatures(), mono.BoldLigatures()} {
+		if len(ligs) != 31 {
+			t.Errorf("%d ligatures", len(ligs))
+		}
+		for i, l := range ligs {
+			if i > 0 && len([]rune(l.Text)) > len([]rune(ligs[i-1].Text)) {
+				t.Errorf("%q is tried after the shorter %q", l.Text, ligs[i-1].Text)
+			}
+			if len(l.Glyphs) != len([]rune(l.Text)) {
+				t.Errorf("%q has %d glyphs", l.Text, len(l.Glyphs))
+			}
+			for _, g := range l.Glyphs {
+				if g.Advance != mono.CellWidth || !g.Bounds.In(cell) {
+					t.Errorf("a slice of %q advances %d in %v", l.Text, g.Advance, g.Bounds)
+				}
+			}
+		}
+	}
+
+	lines := []string{
+		"a == b != c <= d >= e => f -> g <- h",
+		"x === y !== z <=> <-> --> <-- ==> <==",
+		"... /// /** **/ ::= <> |> <| ++ -- // /* */ := ::",
+		"<!-- a --> 不连：==== .... ---> a:::b",
+	}
+	for _, s := range []struct {
+		font bitmap.Font
+		ligs []mono.Ligature
+	}{
+		{mono.Regular(), mono.Ligatures()},
+		{mono.Bold(), mono.BoldLigatures()},
+	} {
+		for _, l := range lines {
+			f := bitmap.Fallback(s.font, mono.EastAsian(zhhans.Regular()))
+			img := image.NewGray(image.Rect(0, 0, 1, 1))
+			if got, want := mono.Draw(img, image.Point{}, f, s.ligs, l, color.Black).X, bitmap.Measure(f, l); got != want {
+				t.Errorf("%q: Draw goes %d, Measure %d", l, got, want)
+			}
+		}
+	}
+
+	w := 0
+	for _, l := range lines {
+		w = max(w, bitmap.Measure(mono.Regular(), l)+12*4)
+	}
+	img := image.NewGray(image.Rect(0, 0, w+4, 2*12*len(lines)+4))
+	for i := range img.Pix {
+		img.Pix[i] = 0xFF
+	}
+	for i, l := range lines {
+		y := 2 + mono.Ascent + 24*i
+		mono.Draw(img, image.Pt(2, y), bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular())), mono.Ligatures(), l, color.Black)
+		mono.Draw(img, image.Pt(2, y+12), bitmap.Fallback(mono.Bold(), mono.EastAsian(zhhans.Bold())), mono.BoldLigatures(), l, color.Black)
+	}
+	var got bytes.Buffer
+	if err := png.Encode(&got, img); err != nil {
+		t.Fatal(err)
+	}
+	const path = "testdata/ligatures.png"
+	if *update {
+		if err := os.WriteFile(path, got.Bytes(), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("%v (go test -update writes it)", err)
+	}
+	if !bytes.Equal(want, got.Bytes()) {
+		t.Errorf("the ligatures differ from %s", path)
+	}
+}

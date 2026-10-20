@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"slices"
 	"text/template"
 	"unicode"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/firede/platinum-fonts/internal/cells"
 	"github.com/firede/platinum-fonts/internal/drawn"
 	"github.com/firede/platinum-fonts/internal/grid"
+	"github.com/firede/platinum-fonts/internal/ligature"
 	"github.com/firede/platinum-fonts/internal/source"
 )
 
@@ -19,10 +21,17 @@ import (
 // its source.
 const monoDrawn = "glyphs/mono.txt"
 
+// monoLigatureLicense is where buildMono writes the license of the
+// ligatures.
+const monoLigatureLicense = "licenses/akr-pixel/LICENSE.txt"
+
 // monoMade is what buildMono made, for the docs.
 type monoMade struct {
-	src           *source.Source
+	src, ligSrc   *source.Source
 	regular, bold *bitmap.Face
+	// The ligatures, longest first, and their slices in each style.
+	ligTexts            []string
+	ligRegular, ligBold [][]bitmap.Glyph
 }
 
 // buildMono makes Platinum Mono. Its glyphs, the first that has one:
@@ -136,6 +145,11 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 		glyphs[r] = g
 	}
 
+	made := &monoMade{src: src}
+	if err := buildLigatures(made, sources, cache, glyphs, out); err != nil {
+		return nil, err
+	}
+
 	bold := map[rune]bitmap.Glyph{}
 	for r, g := range glyphs {
 		_, gen := generated[r]
@@ -145,7 +159,6 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 			bold[r] = emboldenInCells(g)
 		}
 	}
-	made := &monoMade{src: src}
 	for _, st := range []struct {
 		file   string
 		glyphs map[rune]bitmap.Glyph
@@ -166,6 +179,7 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 
 	code, err := generate(monoTemplate, map[string]any{
 		"Version": src.Pinned(), "Glyphs": len(glyphs), "Width": grid.W,
+		"Ligatures": made.ligTexts, "LigatureSource": made.ligSrc.Repository,
 		"CapHeight": own.CapHeight, "XHeight": own.XHeight,
 	})
 	if err != nil {
@@ -178,6 +192,65 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 		return nil, err
 	}
 	return made, nil
+}
+
+// buildLigatures makes the ligatures of AKR Pixel, sliced into cells, for
+// the faces of glyphs: Bold's emboldened whole, then sliced.
+func buildLigatures(made *monoMade, sources map[string]*source.Source, cache string, glyphs map[rune]bitmap.Glyph, out map[string][]byte) error {
+	fetch := func(name string) (*source.Source, []byte, error) {
+		src := sources[name]
+		if src == nil {
+			return nil, nil, fmt.Errorf("sources.toml has no %s", name)
+		}
+		data, err := source.Fetch(src, cache)
+		return src, data, err
+	}
+	src, text, err := fetch("akr-pixel-ligatures")
+	if err != nil {
+		return err
+	}
+	_, license, err := fetch("akr-pixel-license")
+	if err != nil {
+		return err
+	}
+	out[monoLigatureLicense] = license
+	ligs, err := ligature.Parse(src.Name, string(text), grid.W, grid.H, grid.Ascent)
+	if err != nil {
+		return err
+	}
+	for _, l := range ligs {
+		for _, r := range l.Text {
+			if _, ok := glyphs[r]; !ok || cells.Of(r) != 1 {
+				return fmt.Errorf("%s: %q has %q, which Mono does not draw in a cell", src.Name, l.Text, r)
+			}
+		}
+	}
+	slices.SortStableFunc(ligs, func(a, b ligature.Ligature) int {
+		return len([]rune(b.Text)) - len([]rune(a.Text))
+	})
+
+	made.ligSrc = src
+	regular, bold := map[rune]bitmap.Glyph{}, map[rune]bitmap.Glyph{}
+	n := rune(0)
+	for _, l := range ligs {
+		made.ligTexts = append(made.ligTexts, l.Text)
+		b := emboldenInCells(l.Glyph)
+		var rs, bs []bitmap.Glyph
+		for i := range len([]rune(l.Text)) {
+			rs = append(rs, ligature.Slice(l.Glyph, i, grid.W))
+			bs = append(bs, ligature.Slice(b, i, grid.W))
+			regular[n], bold[n] = rs[i], bs[i]
+			n++
+		}
+		made.ligRegular = append(made.ligRegular, rs)
+		made.ligBold = append(made.ligBold, bs)
+	}
+	for file, style := range map[string]map[rune]bitmap.Glyph{"mono/regular-ligatures.bin": regular, "mono/bold-ligatures.bin": bold} {
+		if out[file], err = bitmap.Encode(grid.Ascent, grid.H-grid.Ascent, style); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // fit returns g set in the cells r takes: as it is if it fits them, its
@@ -261,6 +334,9 @@ var monoTemplate = template.Must(template.New("mono").Parse(`// Code generated b
 // fill their cells and meet the cells around them. Its East Asian glyphs
 // are those of cjk12, set in its cells by EastAsian.
 //
+// Draw draws its ligatures, hand-drawn for AKR Pixel ({{.LigatureSource}}):
+// each a slice in each cell of its characters.
+//
 // Bold is Regular emboldened within the cells: each glyph drawn again a
 // pixel to its right, gaps of a pixel between strokes kept open. The
 // characters that fill their cells are the same in both styles.
@@ -282,6 +358,20 @@ var dataRegular []byte
 
 //go:embed bold.bin
 var dataBold []byte
+
+//go:embed regular-ligatures.bin
+var dataRegularLigatures []byte
+
+//go:embed bold-ligatures.bin
+var dataBoldLigatures []byte
+
+// ligatureTexts are the characters of the ligatures, in the order Draw
+// tries them; the slices of each follow those of the one before.
+var ligatureTexts = []string{
+{{- range .Ligatures}}
+	{{printf "%q" .}},
+{{- end}}
+}
 
 var (
 	faceRegular = sync.OnceValue(func() *bitmap.Face { return decode(dataRegular) })

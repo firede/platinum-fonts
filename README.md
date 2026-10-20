@@ -62,6 +62,13 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   `mono.EastAsian`. Bold is emboldened within the cells, gaps of 1 pixel
   and the column between characters kept open; the generated glyphs are
   the same in both styles.
+- Platinum Mono ligatures: 31, as `=>` `!=` `<=` `->` `::` `/*`, from
+  [AKR Pixel](https://github.com/AkaraChen/font), drawn on the same grid.
+  Each character of a ligature is drawn as its cell's slice of it, so
+  every glyph still advances one cell. Runs as `====` and `....` are not
+  joined. In the fonts they are the OpenType feature `calt` (OTF, TTF,
+  WOFF2 and OTB; turn `calt` off where they are not wanted); BDF and PCF
+  have none. In Go, `mono.Draw` draws them.
 
 ## Usage
 
@@ -82,6 +89,7 @@ w := bitmap.Measure(bold, "Hello")
 
 term := bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular()))
 n := mono.Cells('中')                       // 2: its glyph advances 2 * mono.CellWidth
+end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // with ligatures
 ```
 
 - Coordinates are relative to the dot on the baseline; y grows downward.
@@ -90,15 +98,10 @@ n := mono.Cells('中')                       // 2: its glyph advances 2 * mono.C
 
 ## Planned
 
-For Platinum Mono:
-
-- Ligatures from AKR Pixel, in OpenType by `calt`: each character of a
-  ligature becomes its cell's slice of it, so that every glyph still
-  advances one cell. Turn `calt` off where ligatures are not wanted; BDF,
-  PCF and OTB have none.
-- Nerd Fonts icons, rasterized to the grid: each advances 1 cell, its ink
-  up to 2 cells wide, as in Nerd Font (not Nerd Font Mono), and wants a
-  space after it. Frequently used icons are corrected by hand.
+For Platinum Mono: Nerd Fonts icons, rasterized to the grid. Each
+advances 1 cell, its ink up to 2 cells wide, as in Nerd Font (not Nerd
+Font Mono), and wants a space after it. Frequently used icons are
+corrected by hand.
 
 ## Build
 
@@ -122,7 +125,7 @@ Pushing a tag `vX.Y.Z` runs the same steps in `.github/workflows/release.yml`
 and attaches the zips to the release.
 
 Generated files: `sans/*`, `sanssmall/*`, `cjk12/*/*` and `mono/*` except
-tests, `testdata` and `mono/cells.go`; `docs/coverage.md`,
+tests, `testdata`, `mono/cells.go` and `mono/ligatures.go`; `docs/coverage.md`,
 `docs/specimen.png`, `licenses/`, `NOTICE.md`, `OFL.txt`.
 
 The format of `glyphs/*.txt` is described in
@@ -132,5 +135,6 @@ The format of `glyphs/*.txt` is described in
 
 - Glyph data and faces: SIL Open Font License 1.1 ([OFL.txt](OFL.txt)).
   Sources and their licenses are listed in [NOTICE.md](NOTICE.md) and
-  [licenses](licenses).
+  [licenses](licenses); the ligatures of Platinum Mono come from AKR
+  Pixel under the MIT License.
 - Code: MIT ([LICENSE](LICENSE)).

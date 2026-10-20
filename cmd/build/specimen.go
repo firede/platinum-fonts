@@ -11,6 +11,7 @@ import (
 	"github.com/firede/platinum-fonts/bitmap"
 	"github.com/firede/platinum-fonts/internal/cells"
 	"github.com/firede/platinum-fonts/internal/grid"
+	"github.com/firede/platinum-fonts/internal/ligature"
 )
 
 // The specimen's width, in pixels of the faces, and the scale it is drawn
@@ -129,15 +130,35 @@ func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 		section("Mono: Regular and Bold")
 		monoText := bitmap.Fallback(mono.regular, monoEastAsian{regular["zhhans"]})
 		monoBold := bitmap.Fallback(mono.bold, monoEastAsian{bold["zhhans"]})
+		// ligText draws s as text does, in Regular, with Mono's ligatures.
+		ligText := func(s string, x, y int) {
+			if img == nil {
+				return
+			}
+			rs := []rune(s)
+			starts := ligature.Starts(mono.ligTexts, rs)
+			dot := image.Pt(x, y)
+			for i := 0; i < len(rs); i++ {
+				if j := starts[i]; j >= 0 {
+					for _, g := range mono.ligRegular[j] {
+						dot = bitmap.DrawGlyph(scaled{img, k}, dot, g, ink)
+					}
+					i += len(mono.ligRegular[j]) - 1
+				} else if g, ok := monoText.Glyph(rs[i]); ok {
+					dot = bitmap.DrawGlyph(scaled{img, k}, dot, g, ink)
+				}
+			}
+		}
 		y += 6
-		for i, line := range monoBox("main.go", 40, "func main() {", `    fmt.Println("你好，世界") // 问候`, "}") {
-			text(monoText, line, m, y+grid.Ascent+grid.H*i, ink, 1)
+		code := monoBox("main.go", 40, "func main() {", "    for i := 0; i <= 2; i++ {", `        fmt.Println("你好") // 问候`, "    }", "}")
+		for i, line := range code {
+			ligText(line, m, y+grid.Ascent+grid.H*i)
 		}
 		x := m + 46*grid.W
-		for i, line := range []string{"", "▁▂▃▄▅▆▇█▇▆", "⣀⣠⣤⣴⣶⣾⣿⣷⣦⣄", "░░▒▒▓▓██▓▒", ""} {
+		for i, line := range []string{"", "", "▁▂▃▄▅▆▇█▇▆", "⣀⣠⣤⣴⣶⣾⣿⣷⣦⣄", "░░▒▒▓▓██▓▒", "", ""} {
 			text(monoText, line, x, y+grid.Ascent+grid.H*i, ink, 1)
 		}
-		y += 5*grid.H + 8
+		y += len(code)*grid.H + 8
 		// A prompt of Powerline segments, in Bold.
 		x = m
 		segments := []struct {

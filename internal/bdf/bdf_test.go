@@ -92,11 +92,12 @@ func TestWriteRoundTrip(t *testing.T) {
 	notdef := bitmap.NewGlyph(7, image.Rect(1, -8, 6, 0), func(x, y int) bool { return x == 1 || y == -1 })
 	var out bytes.Buffer
 	h := Header{Name: "-test-", PixelSize: 12, Ascent: 11, Descent: 3, Properties: map[string]string{"FAMILY_NAME": `"Test"`}}
-	if err := Write(&out, h, &notdef, in.Glyphs); err != nil {
+	named := map[string]bitmap.Glyph{"lig.003D_003D.0": bitmap.NewGlyph(6, image.Rect(0, -5, 6, -2), func(x, y int) bool { return y != -4 })}
+	if err := Write(&out, h, &notdef, named, in.Glyphs); err != nil {
 		t.Fatal(err)
 	}
 	text := out.String()
-	for _, want := range []string{"STARTCHAR .notdef\nENCODING -1\n", "FAMILY_NAME \"Test\"\n", "STARTCHAR u20000\n", "CHARS 4\n"} {
+	for _, want := range []string{"STARTCHAR .notdef\nENCODING -1\n", "FAMILY_NAME \"Test\"\n", "STARTCHAR u20000\n", "CHARS 5\n", "STARTCHAR lig.003D_003D.0\nENCODING -1\n"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("no %q in\n%s", want, text)
 		}

@@ -52,7 +52,18 @@ func buildDocs(latin []latinFace, cjk *cjkMade, mono *monoMade, out map[string][
 
 	// Licenses and the notice crediting them.
 	var notice strings.Builder
-	fmt.Fprintf(&notice, noticeHead, ownCopyright, mono.src.Repository, mono.src.Pinned(), ownCopyright, cjk.src.Repository, cjk.src.Pinned())
+	var ligHolders []string
+	for _, line := range strings.Split(string(out[monoLigatureLicense]), "\n") {
+		if line = strings.TrimSpace(line); strings.HasPrefix(strings.ToLower(line), "copyright") {
+			ligHolders = append(ligHolders, line)
+		}
+	}
+	if len(ligHolders) == 0 {
+		return fmt.Errorf("%s has no copyright", monoLigatureLicense)
+	}
+	fmt.Fprintf(&notice, noticeHead, ownCopyright, mono.src.Repository, mono.src.Pinned(), ownCopyright,
+		mono.ligSrc.Repository, mono.ligSrc.Commit, monoLigatureLicense, monoLigatureLicense, strings.Join(ligHolders, "; "),
+		cjk.src.Repository, cjk.src.Pinned())
 	var ofl strings.Builder
 	ofl.WriteString("Platinum Fonts\nhttps://github.com/firede/platinum-fonts\n\n" + ownCopyright + "\n")
 	for _, l := range licenses {
@@ -133,6 +144,10 @@ left out.
 Box drawing, blocks, braille and Powerline separators are drawn by
 [internal/grid](internal/grid), and other glyphs in
 [glyphs/mono.txt](glyphs/mono.txt), for this repository. %s
+
+Ligatures: [AKR Pixel](%s) %.7s, drawn on the same grid; each is cut into
+a slice per cell, and Bold emboldens them. MIT License,
+[%s](%s): %s.
 
 ## cjk12
 

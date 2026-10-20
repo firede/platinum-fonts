@@ -31,20 +31,23 @@ func (fb fallback) Glyph(r rune) (Glyph, bool) {
 // lacks, and returns the dot after it.
 func Draw(dst draw.Image, dot image.Point, f Font, s string, c color.Color) image.Point {
 	for _, r := range s {
-		g, ok := f.Glyph(r)
-		if !ok {
-			continue
+		if g, ok := f.Glyph(r); ok {
+			dot = DrawGlyph(dst, dot, g, c)
 		}
-		for y := g.Bounds.Min.Y; y < g.Bounds.Max.Y; y++ {
-			for x := g.Bounds.Min.X; x < g.Bounds.Max.X; x++ {
-				if g.At(x, y) {
-					dst.Set(dot.X+x, dot.Y+y, c)
-				}
-			}
-		}
-		dot.X += g.Advance
 	}
 	return dot
+}
+
+// DrawGlyph draws g in c on dst from dot, and returns the dot after it.
+func DrawGlyph(dst draw.Image, dot image.Point, g Glyph, c color.Color) image.Point {
+	for y := g.Bounds.Min.Y; y < g.Bounds.Max.Y; y++ {
+		for x := g.Bounds.Min.X; x < g.Bounds.Max.X; x++ {
+			if g.At(x, y) {
+				dst.Set(dot.X+x, dot.Y+y, c)
+			}
+		}
+	}
+	return dot.Add(image.Pt(g.Advance, 0))
 }
 
 // Measure returns how far s moves the dot when drawn with f.

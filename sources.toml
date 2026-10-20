@@ -25,7 +25,15 @@ repository = "https://github.com/AkaraChen/font"
 commit = "61efafc05073dc6a97c715aeb960516e78f1a2f6"
 url = "https://raw.githubusercontent.com/AkaraChen/font/61efafc05073dc6a97c715aeb960516e78f1a2f6/pixel/ligatures/ligatures.txt"
 sha256 = "b2c5fad418340b05b89aeedbe9494fc5c9b925bf8ebbd9f8bb53f71304bcd98f"
-license = "OFL-1.1"
+license = "MIT"
+
+[akr-pixel-license]
+# The license of the ligatures: their repository's.
+repository = "https://github.com/AkaraChen/font"
+commit = "61efafc05073dc6a97c715aeb960516e78f1a2f6"
+url = "https://raw.githubusercontent.com/AkaraChen/font/61efafc05073dc6a97c715aeb960516e78f1a2f6/LICENSE"
+sha256 = "61cf6d473311a5fabab78963a92ff9fc78723812b6fa7426c468abbe17a697bb"
+license = "MIT"
 
 [nerd-fonts-symbols]
 # Icons of the Mono face, rasterized onto the grid.

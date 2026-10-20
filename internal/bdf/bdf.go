@@ -142,14 +142,27 @@ type Header struct {
 	Properties      map[string]string // more properties, values written as they are
 }
 
+// Name returns the name Write gives the glyph of r.
+func Name(r rune) string {
+	if r > 0xFFFF {
+		return fmt.Sprintf("u%05X", r)
+	}
+	return fmt.Sprintf("uni%04X", r)
+}
+
 // Write writes a BDF font of glyphs, by character, sorted by character.
-// notdef, if it has a box, is written first, as .notdef with no encoding.
-func Write(w io.Writer, h Header, notdef *bitmap.Glyph, glyphs map[rune]bitmap.Glyph) error {
+// notdef, if not nil, is written first, as .notdef with no encoding;
+// named, glyphs of no character, follow it, sorted by name.
+func Write(w io.Writer, h Header, notdef *bitmap.Glyph, named map[string]bitmap.Glyph, glyphs map[rune]bitmap.Glyph) error {
 	runes := slices.Sorted(maps.Keys(glyphs))
+	names := slices.Sorted(maps.Keys(named))
 	box := image.Rectangle{}
 	all := func(fn func(bitmap.Glyph)) {
 		if notdef != nil {
 			fn(*notdef)
+		}
+		for _, n := range names {
+			fn(named[n])
 		}
 		for _, r := range runes {
 			fn(glyphs[r])
@@ -165,7 +178,7 @@ func Write(w io.Writer, h Header, notdef *bitmap.Glyph, glyphs map[rune]bitmap.G
 	for _, k := range keys {
 		fmt.Fprintf(b, "%s %s\n", k, h.Properties[k])
 	}
-	n := len(runes)
+	n := len(runes) + len(names)
 	if notdef != nil {
 		n++
 	}
@@ -192,12 +205,11 @@ func Write(w io.Writer, h Header, notdef *bitmap.Glyph, glyphs map[rune]bitmap.G
 	if notdef != nil {
 		char(".notdef", -1, *notdef)
 	}
+	for _, n := range names {
+		char(n, -1, named[n])
+	}
 	for _, r := range runes {
-		name := fmt.Sprintf("uni%04X", r)
-		if r > 0xFFFF {
-			name = fmt.Sprintf("u%05X", r)
-		}
-		char(name, int(r), glyphs[r])
+		char(Name(r), int(r), glyphs[r])
 	}
 	b.WriteString("ENDFONT\n")
 	return b.Flush()

@@ -1,7 +1,8 @@
 """Makes the release's font packages from the BDF fonts cmd/export writes.
 
 Each BDF font becomes OTF, TTF, WOFF2, OTB, BDF and PCF; each format is
-packed in a zip with the licenses.
+packed in a zip with the licenses. The OpenType feature file of the same
+name next to a BDF font, if any, goes into the OpenType formats and OTB.
 
     python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
 """
@@ -89,6 +90,11 @@ def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
         ))
         if g.encoding >= 0:
             builder.character_mapping[g.encoding] = g.name
+    # Ligatures: cmd/export writes the feature that draws them next to the
+    # font.
+    fea = bdf_path.with_suffix('.fea')
+    if fea.exists():
+        builder.opentype_config.features = opentype.FeatureFile(fea)
     return builder
 
 

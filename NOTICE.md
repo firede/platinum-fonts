@@ -20,6 +20,10 @@ Box drawing, blocks, braille and Powerline separators are drawn by
 [internal/grid](internal/grid), and other glyphs in
 [glyphs/mono.txt](glyphs/mono.txt), for this repository. Copyright (c) 2026, Firede (https://github.com/firede).
 
+Ligatures: [AKR Pixel](https://github.com/AkaraChen/font) 61efafc, drawn on the same grid; each is cut into
+a slice per cell, and Bold emboldens them. MIT License,
+[licenses/akr-pixel/LICENSE.txt](licenses/akr-pixel/LICENSE.txt): Copyright (c) 2026 AkaraChen.
+
 ## cjk12
 
 Source: [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font) 2026.09.25, 12px, proportional.
