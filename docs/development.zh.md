@@ -75,7 +75,8 @@ go test ./...               # go test ./... -update 重写 golden 图
 
 - `sans/`、`sanssmall/`、`cjk12/*/` 和 `mono/`，测试、`testdata`、`mono/cells.go`
   与 `mono/ligatures.go` 除外
-- `docs/coverage.md`、`docs/specimen.png`、`docs/mono.png`
+- `docs/coverage.md`、`docs/specimen.png`、`docs/mono.png`、
+  `docs/social.png`
 - `licenses/`、`NOTICE.md`、`OFL.txt`
 
 ## 发布

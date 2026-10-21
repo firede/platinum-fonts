@@ -52,6 +52,9 @@ func buildDocs(latin []latinFace, cjk *cjkMade, mono *monoMade, out map[string][
 	if out["docs/mono.png"], err = monoSpecimen(latin, cjk, mono); err != nil {
 		return err
 	}
+	if out["docs/social.png"], err = socialPreview(latin, cjk, mono); err != nil {
+		return err
+	}
 
 	// Licenses and the notice crediting them.
 	var notice strings.Builder

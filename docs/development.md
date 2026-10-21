@@ -81,7 +81,8 @@ These files are generated; edit `glyphs/` or `cmd/build` instead:
 
 - `sans/`, `sanssmall/`, `cjk12/*/` and `mono/`, except the tests,
   `testdata`, `mono/cells.go` and `mono/ligatures.go`
-- `docs/coverage.md`, `docs/specimen.png`, `docs/mono.png`
+- `docs/coverage.md`, `docs/specimen.png`, `docs/mono.png`,
+  `docs/social.png`
 - `licenses/`, `NOTICE.md`, `OFL.txt`
 
 ## Release
