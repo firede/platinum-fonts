@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"math"
@@ -90,9 +91,12 @@ func buildIcons(sources map[string]*source.Source, cache string, have map[rune]b
 	}
 	for _, set := range iconSets {
 		for _, name := range set.sources {
-			if _, out[licenseFile(name)], err = fetch(name); err != nil {
+			_, text, err := fetch(name)
+			if err != nil {
 				return nil, nil, err
 			}
+			// Some end their lines in CRLF; the repository keeps text in LF.
+			out[licenseFile(name)] = bytes.ReplaceAll(text, []byte("\r\n"), []byte("\n"))
 		}
 	}
 	ttf, err := archive.File("SymbolsNerdFont-Regular.ttf")
