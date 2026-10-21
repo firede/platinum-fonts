@@ -1,126 +1,83 @@
-# platinum-fonts
+# Platinum Fonts
 
 [English](README.md) | 简体中文
 
-拉丁文字与东亚文字的位图字体。西文字形绘制在 [`glyphs`](glyphs) 中；东亚文字字形
-以及 Platinum Mono 的西文来自 [`sources.toml`](sources.toml) 中固定版本的字体。
-`cmd/build` 将它们打包为 Go 包。
+一套用于界面和终端的像素字体，绘制在 12 像素的网格上。西文与中文、日文、韩文
+混排，在 12 像素及其整数倍下清晰锐利。
 
-![字样](docs/specimen.png)
-
-状态：早期。1.0 之前 API 可能变化。
-
-## 下载
-
-字体包附在每个 [Release](https://github.com/firede/platinum-fonts/releases) 中，每种格式一个 zip：
-
-| 格式 | 用途 |
-|---|---|
-| `otf`、`ttf` | macOS、Windows 及大多数应用 |
-| `woff2` | 网页 |
-| `otb` | Linux 桌面（GTK、Pango） |
-| `bdf`、`pcf` | X11 应用、终端 |
-
-字体名：Platinum Sans SC、TC、JP、KR，Platinum Sans Small SC、TC、JP、KR 与
-Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
-后缀决定东亚文字字形的地区写法。em 为 12px：请在 12px 或其整数倍下使用。
+![Platinum Sans、Platinum Sans Small 与 Platinum Mono，以及中文、日文和韩文](docs/specimen.png)
 
 ## 字族
 
-| 字族 | 包 | 样式 | 上行 | 下行 | 大写高度 | 小写高度 |
-|---|---|---|---|---|---|---|
-| Platinum Sans | `sans` | Regular、Bold | 9 | 3 | 9 | 6 |
-| Platinum Sans Small | `sanssmall` | Regular、Bold | 8 | 3 | 8 | 5 |
-| Platinum Mono | `mono` | Regular、Bold | 11 | 3 | 8 | 6 |
-| 东亚文字 12px | `cjk12/zhhans`、`cjk12/zhhant`、`cjk12/ja`、`cjk12/ko` | Regular、Bold | 13 | 3 | | |
+- **Platinum Sans**：比例宽度的无衬线字体，用于界面文字。
+- **Platinum Sans Small**：更小的无衬线字体，用于工具栏、状态栏等紧凑的布局。
+- **Platinum Mono**：等宽字体，用于终端和代码。中文、日文、韩文占两格，与西文
+  对齐。内置编程连字和 Nerd Fonts 图标。
 
-上行与下行为 `Face.Ascent` 与 `Face.Descent` 的返回值。
+每个字族都有 Regular 和 Bold 两种字重，并分为四个地区版本：**SC**（简体中文）、
+**TC**（繁体中文）、**JP**（日文）和 **KR**（韩文）。各版本的西文相同，区别在于
+汉字采用哪个地区的字形。选择你最常阅读的语言即可。
 
-- Platinum Sans 与 Platinum Sans Small：比例宽度的拉丁字母，含 Latin-1 与常用中欧
-  字母、排版标点，以及符号 ⌘ ↑ ↵ ⌫（仅 Platinum Sans）。
-- Platinum Sans Small Bold 与 `cjk12` 的 Bold 由 Regular 算法加粗得到：每个字形向右
-  1 像素再绘制一次，宽度加 1 像素。`cjk12` 的 Bold 保留笔画之间 1 像素的空隙
-  （`bitmap.EmboldenOpen`），在首次使用时计算。
-- `cjk12`：同一批字符的四套地区字形；每个包约 34,600 个字形，635 KB。汉字墨迹
-  11×11，从基线下 1 行到基线上 10 行；步进 12。只含东亚文字区块。各字符集覆盖率：
-  [docs/coverage.md](docs/coverage.md)。
-- Platinum Mono：用于终端与代码，格子宽 7 像素、高 14 像素，已含行间距。字符占的
-  格数由 `mono.Cells` 给出：按 `wcwidth` 的规则取东亚宽度属性，Ambiguous 为 1 格；
-  字形的步进与之相同，放不进格子的字形不收录。西文与符号取自缝合像素字体 12px
-  等宽版，原稿画在 6×12 的格子上，放进格子时右移 1 列，每格第一列留作字符之间的
-  空隙；它画成 2 格宽或没有收录的约一百个常用符号（如 — → ■ ✓ ≠）在
-  [`glyphs/mono.txt`](glyphs/mono.txt) 中画成 1 格宽。框线、方块、盲文和 Powerline
-  分隔符由程序生成，填满格子并与相邻格子相接。东亚文字字形取自 `cjk12`，由
-  `mono.EastAsian` 右移 1 列放进格子，与其他字族一样在基线下占 1 行。Bold 在格子
-  内加粗，保留 1 像素的笔画空隙；程序生成的字形两种样式相同。
-- Platinum Mono 连字：共 31 个，如 `=>` `!=` `<=` `->` `::` `/*`，取自
-  [AKR Pixel](https://github.com/AkaraChen/font)，原稿画在 6×12 的格子上，同样
-  加宽。连字的每个字符画成连字在它那一格的切片，每个字形仍只前进 1 格。`====`、
-  `....` 这样的连续字符不连。字体中以 OpenType 特性 `calt` 实现（OTF、TTF、WOFF2
-  和 OTB；不需要时关闭 `calt` 即可）；BDF 和 PCF 不含连字。在 Go 中由 `mono.Draw`
-  绘制。
-- Platinum Mono 图标：[Nerd Fonts](https://www.nerdfonts.com) 私用区的约 10,600 个
-  图标，栅格化到格子上；其中最常用的约 170 个（`eza`、Starship 和 Powerline 提示符
-  用到的文件夹与文件、编程语言、操作系统、Git、状态等）在
-  [`glyphs/icons.txt`](glyphs/icons.txt) 中手绘。每个图标步进 1 格、
-  最宽画到 2 格，与 Nerd Font（而非 Nerd Font Mono）相同，后面应跟一个空格。Bold
-  与 Regular 的图标相同。
+![终端中的 Platinum Mono：带图标的目录列表、带连字和中文的代码，以及系统监视器](docs/mono.png)
 
-## 用法
+## 安装
 
-```go
-import (
-	"github.com/firede/platinum-fonts/bitmap"
-	"github.com/firede/platinum-fonts/cjk12/zhhans"
-	"github.com/firede/platinum-fonts/mono"
-	"github.com/firede/platinum-fonts/sans"
-)
+从 [Releases](https://github.com/firede/platinum-fonts/releases) 下载 zip，每种格式
+一个：
 
-text := bitmap.Fallback(sans.Regular(), zhhans.Regular())
-bold := bitmap.Fallback(sans.Bold(), zhhans.Bold())
+| 格式 | 用途 |
+|---|---|
+| `otf` | macOS、Windows 及大多数应用 |
+| `ttf` | 不支持 OTF 的应用 |
+| `woff2` | 网页 |
+| `otb` | Linux 桌面（GTK、Pango） |
+| `bdf`、`pcf` | X11 应用 |
 
-g, ok := text.Glyph('中')                   // g.Advance == 12，g.Bounds == (0,-10)-(11,1)
-end := bitmap.Draw(img, dot, text, "Hello，世界", color.Black)
-w := bitmap.Measure(bold, "Hello")
+- **macOS**：打开字体文件，点击“安装字体”。
+- **Windows**：选中字体文件，右键选择“安装”。
+- **Linux**：把字体文件复制到 `~/.local/share/fonts`，然后运行 `fc-cache -f`。
 
-term := bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular()))
-n := mono.Cells('中')                       // 2：其字形步进 2 * mono.CellWidth
-end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // 带连字
-```
+## 请在 12 像素下使用
 
-- 坐标以基线上的原点为基准，y 轴向下。
-- `Glyph.Mask` 以相同坐标返回字形的 `*image.Alpha`。
+每个字形都在 12 像素的网格上逐像素绘制，因此只有在 12 像素或其整数倍（24、36……）
+下才清晰，其他字号会发虚。
 
-## 构建
+| 环境 | 字号 |
+|---|---|
+| macOS（无论是否 Retina） | 12 或 24 |
+| Windows，缩放 100% 或 200% | 9 pt 或 18 pt |
+| 网页 | `font-size: 12px` 或 `24px` |
 
-```sh
-go run ./cmd/build          # 从 glyphs/ 与来源重新生成
-go run ./cmd/build -check   # 仓库内容过期时以非零状态退出
-go test ./...               # -update 重写 */testdata 中的 golden 图
-```
+Windows 在 125%、150% 等其他缩放比例下，没有哪个字号能对齐整像素。
 
-来源下载到 `cache/`，只下载一次，并按固定的 SHA-256 校验。输出是确定的。
+## 在终端中使用 Platinum Mono
 
-按发布流程生成字体包（Python 3.13，依赖见 `release/requirements.txt`）：
+把字体设为 `Platinum Mono SC`（或 TC、JP、KR），字号设为 12。
 
-```sh
-go run ./cmd/export -o dist/bdf
-python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
-```
+- **行高**已内置在字体中，终端的行高保持默认即可。每格宽 7 像素、高 14 像素。
+- **图标**画两格宽、只占一格，与 Nerd Font（而非 Nerd Font Mono）相同。图标后
+  要留一个空格；eza、Starship 等工具已经这样做了。
+- **连字**会连接 `=>` `!=` `<=` `->` `::` `//` 等，共 31 个。它们通过 OpenType
+  特性 `calt` 默认开启；BDF 和 PCF 不含连字。关闭方法：
 
-推送 `vX.Y.Z` 形式的 tag 时，`.github/workflows/release.yml` 执行相同的步骤，并把
-zip 附到对应的 Release。
+  | 应用 | 设置 |
+  |---|---|
+  | Ghostty | `font-feature = -calt` |
+  | Zed | `"buffer_font_features": { "calt": false }` |
+  | VS Code | `"editor.fontLigatures": false` |
+  | Kitty | `disable_ligatures always` |
+  | WezTerm | `harfbuzz_features = { "calt=0" }` |
 
-生成的文件：`sans/*`、`sanssmall/*`、`cjk12/*/*` 与 `mono/*`（测试、`testdata`、
-`mono/cells.go` 与 `mono/ligatures.go` 除外）、
-`docs/coverage.md`、`docs/specimen.png`、`licenses/`、`NOTICE.md`、`OFL.txt`。
+- **宽度不明确的字符**，如 `○` `★` 以及希腊字母、西里尔字母，占一格。请把终端的
+  “模糊宽度”保持为窄（通常就是默认值）。
 
-`glyphs/*.txt` 的格式见 [`internal/drawn`](internal/drawn/drawn.go)。
+## 开发者
+
+这些字体同时也是 Go 包，可以把文字绘制到图像中，见[开发](docs/development.zh.md)。
+各字族如何制作、度量数据和来源，见[设计](docs/design.zh.md)。
 
 ## 许可
 
-- 字形数据与字体：SIL Open Font License 1.1（[OFL.txt](OFL.txt)）。来源及其许可见
-  [NOTICE.md](NOTICE.md) 和 [licenses](licenses)；Platinum Mono 的连字取自 AKR
-  Pixel，采用 MIT 许可证；图标取自 Nerd Fonts，采用各图标集的许可证（MIT、
-  CC BY 4.0、Apache 2.0、OFL 1.1）。
-- 代码：MIT（[LICENSE](LICENSE)）。
+字体采用 [SIL Open Font License 1.1](OFL.txt)。Platinum Mono 还包含采用 MIT 许可证
+的连字，以及采用各图标集许可证的图标；[NOTICE.md](NOTICE.md) 列出了所有来源及其
+许可证。代码采用 [MIT 许可证](LICENSE)。

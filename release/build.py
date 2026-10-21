@@ -23,9 +23,18 @@ REPOSITORY = 'https://github.com/firede/platinum-fonts'
 FORMATS = ['otf', 'ttf', 'woff2', 'otb', 'bdf', 'pcf']
 
 
-def copyright_lines() -> str:
-    head = (ROOT / 'OFL.txt').read_text().split('This Font Software is licensed')[0]
-    return '\n'.join(line.strip() for line in head.splitlines() if line.strip().lower().startswith('copyright'))
+def copyright_lines(path: Path) -> list[str]:
+    """Returns the copyright lines of a license file, as far as its terms."""
+    head = path.read_text().split('This Font Software is licensed')[0].split('Permission is hereby granted')[0]
+    return [line.strip() for line in head.splitlines() if line.strip().lower().startswith('copyright')]
+
+
+OFL = 'This Font Software is licensed under the SIL Open Font License, Version 1.1.'
+# Platinum Mono's ligatures and icons come under licenses of their own.
+MONO_LICENSES = [ROOT / 'licenses/akr-pixel/LICENSE.txt', ROOT / 'licenses/nerd-fonts/LICENSE.txt']
+MONO_LICENSE = OFL + (' Its ligatures, from AKR Pixel, are under the MIT License; its icons, from'
+                      ' Nerd Fonts, under the licenses of their icon sets (MIT, CC BY 4.0, Apache 2.0,'
+                      ' OFL 1.1). See NOTICE.md.')
 
 
 def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
@@ -69,8 +78,11 @@ def make_builder(bdf_path: Path, version: str, date: datetime) -> FontBuilder:
     else:
         meta.designer = 'Firede; TakWolf and others (East Asian glyphs, from Fusion Pixel Font)'
         meta.description = f'{family}: a bitmap face on a {size}px grid. Use it at multiples of {size}px.'
-    meta.copyright_info = copyright_lines()
-    meta.license_info = 'This Font Software is licensed under the SIL Open Font License, Version 1.1.'
+    holders = copyright_lines(ROOT / 'OFL.txt')
+    if mono:
+        holders += [line for path in MONO_LICENSES for line in copyright_lines(path)]
+    meta.copyright_info = '\n'.join(holders)
+    meta.license_info = MONO_LICENSE if mono else OFL
     meta.vendor_url = REPOSITORY
     meta.designer_url = REPOSITORY
     meta.license_url = 'https://openfontlicense.org'
@@ -107,7 +119,9 @@ def postscript_name(builder: FontBuilder) -> str:
 def finish(builder: FontBuilder, fb) -> None:
     """Names the font as PostScript names are written, and marks its style
     where Windows and macOS look for it, so that Regular and Bold make a
-    family; and a monospaced font as monospaced, where Windows looks."""
+    family; and a monospaced font as monospaced, where Windows looks, its
+    average width that of a cell, as East Asian glyphs taking two would
+    otherwise make it wider."""
     ps = postscript_name(builder)
     names = fb.font['name']
     for record in list(names.names):
@@ -121,6 +135,9 @@ def finish(builder: FontBuilder, fb) -> None:
     if builder.meta_info.width_style == WidthStyle.MONOSPACED:
         panose = fb.font['OS/2'].panose
         panose.bFamilyType, panose.bProportion = 2, 9  # Latin text, monospaced
+        space = next(g for g in builder.glyphs if g.name == builder.character_mapping[0x20])
+        units = fb.font['head'].unitsPerEm // builder.font_metric.font_size
+        fb.font['OS/2'].xAvgCharWidth = space.advance_width * units
 
 
 def save(builder: FontBuilder, fmt: str, path: Path) -> None:

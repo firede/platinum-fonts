@@ -1,143 +1,98 @@
-# platinum-fonts
+# Platinum Fonts
 
 English | [简体中文](README.zh.md)
 
-Bitmap faces for Latin and East Asian scripts. Latin faces are drawn in
-[`glyphs`](glyphs); East Asian glyphs, and the Latin of Platinum Mono, come
-from fonts pinned in [`sources.toml`](sources.toml). `cmd/build` packs them
-into Go packages.
+Pixel fonts for interfaces and terminals, drawn on a 12-pixel grid. They
+set Latin text alongside Chinese, Japanese and Korean, and stay sharp at
+12 pixels and its multiples.
 
-![Specimen](docs/specimen.png)
-
-Status: early. The API may change before 1.0.
-
-## Download
-
-Font packages are attached to each [release](https://github.com/firede/platinum-fonts/releases),
-one zip per format:
-
-| Format | For |
-|---|---|
-| `otf`, `ttf` | macOS, Windows, most applications |
-| `woff2` | Web pages |
-| `otb` | Linux desktops (GTK, Pango) |
-| `bdf`, `pcf` | X11 applications, terminals |
-
-Font names: Platinum Sans SC, TC, JP, KR, Platinum Sans Small SC, TC,
-JP, KR and Platinum Mono SC, TC, JP, KR, each in Regular and Bold. The
-suffix selects the regional forms of the East Asian glyphs. The em is
-12px: use the fonts at 12px or a multiple of it.
+![Platinum Sans, Platinum Sans Small and Platinum Mono, with Chinese, Japanese and Korean](docs/specimen.png)
 
 ## Families
 
-| Family | Package | Styles | Ascent | Descent | Cap height | x-height |
-|---|---|---|---|---|---|---|
-| Platinum Sans | `sans` | Regular, Bold | 9 | 3 | 9 | 6 |
-| Platinum Sans Small | `sanssmall` | Regular, Bold | 8 | 3 | 8 | 5 |
-| Platinum Mono | `mono` | Regular, Bold | 11 | 3 | 8 | 6 |
-| East Asian, 12px | `cjk12/zhhans`, `cjk12/zhhant`, `cjk12/ja`, `cjk12/ko` | Regular, Bold | 13 | 3 | | |
+- **Platinum Sans**: a proportional sans for interface text.
+- **Platinum Sans Small**: a smaller sans for dense layouts, such as
+  toolbars and status bars.
+- **Platinum Mono**: a monospaced font for terminals and code. Chinese,
+  Japanese and Korean take two cells, aligned with the Latin.
+  Programming ligatures and the icons of Nerd Fonts are built in.
 
-Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
+Each family comes in Regular and Bold, and in four regional versions:
+**SC** (Simplified Chinese), **TC** (Traditional Chinese), **JP**
+(Japanese) and **KR** (Korean). They share their Latin glyphs; the
+version decides the regional forms of the Han characters. Pick the one
+for the language you read most.
 
-- Platinum Sans and Platinum Sans Small: proportional Latin, Latin-1 and
-  common Central European letters, typographic punctuation, and the
-  symbols ⌘ ↑ ↵ ⌫ (Platinum Sans only).
-- Platinum Sans Small Bold and the `cjk12` Bold faces are Regular
-  emboldened: each glyph drawn again 1 pixel to the right, 1 pixel wider.
-  `cjk12` Bold keeps gaps of 1 pixel between strokes open
-  (`bitmap.EmboldenOpen`), and is computed on first use.
-- `cjk12`: the same characters in four sets of regional forms; about
-  34,600 glyphs and 635 KB per package. Ideographs: 11×11 ink, from 1 row
-  below the baseline to 10 rows above it; advance 12. East Asian blocks
-  only. Coverage by national character set: [docs/coverage.md](docs/coverage.md).
-- Platinum Mono: for terminals and code, on cells 7 pixels wide and 14
-  tall, the space between lines included. A character takes the cells
-  `mono.Cells` reports, East Asian Width as `wcwidth` computes it,
-  Ambiguous 1 cell; its glyph advances as far, and glyphs too wide for
-  their cells are left out. Latin and symbols are Fusion Pixel 12px
-  monospaced's, drawn on cells of 6×12 and set a column to the right, so
-  that the first column of each cell stays clear between characters;
-  about a hundred frequent symbols it draws 2 cells wide or lacks, as
-  — → ■ ✓ ≠, are drawn in [`glyphs/mono.txt`](glyphs/mono.txt). Box
-  drawing, blocks, braille and Powerline separators are generated to fill
-  their cells and meet their neighbours'. East Asian glyphs are `cjk12`'s,
-  set a column to the right by `mono.EastAsian`, a row under the baseline
-  as in the other families. Bold is emboldened within the cells, gaps of
-  1 pixel kept open; the generated glyphs are the same in both styles.
-- Platinum Mono ligatures: 31, as `=>` `!=` `<=` `->` `::` `/*`, from
-  [AKR Pixel](https://github.com/AkaraChen/font), drawn on cells of 6×12
-  and widened likewise. Each character of a ligature is drawn as its
-  cell's slice of it, so every glyph still advances one cell. Runs as
-  `====` and `....` are not joined. In the fonts they are the OpenType
-  feature `calt` (OTF, TTF, WOFF2 and OTB; turn `calt` off where they are
-  not wanted); BDF and PCF have none. In Go, `mono.Draw` draws them.
-- Platinum Mono icons: the 10,600 or so of [Nerd Fonts](https://www.nerdfonts.com),
-  in the Private Use Area, rasterized onto the cells; some 170 of those most
-  used, by `eza`, Starship and the Powerline prompts (folders and files,
-  languages, systems, Git, status), are drawn by hand in
-  [`glyphs/icons.txt`](glyphs/icons.txt). Each advances 1 cell and draws
-  up to 2 cells wide, as in Nerd Font (not Nerd Font Mono), so a space
-  should follow it. Bold draws them as Regular does.
+![Platinum Mono in a terminal: a directory listed with icons, code with ligatures and Chinese, and a system monitor](docs/mono.png)
 
-## Usage
+## Install
 
-```go
-import (
-	"github.com/firede/platinum-fonts/bitmap"
-	"github.com/firede/platinum-fonts/cjk12/zhhans"
-	"github.com/firede/platinum-fonts/mono"
-	"github.com/firede/platinum-fonts/sans"
-)
+Download a zip from [Releases](https://github.com/firede/platinum-fonts/releases).
+Each format comes in its own zip:
 
-text := bitmap.Fallback(sans.Regular(), zhhans.Regular())
-bold := bitmap.Fallback(sans.Bold(), zhhans.Bold())
+| Format | For |
+|---|---|
+| `otf` | macOS, Windows and most applications |
+| `ttf` | Applications that do not take OTF |
+| `woff2` | Web pages |
+| `otb` | Linux desktops (GTK, Pango) |
+| `bdf`, `pcf` | X11 applications |
 
-g, ok := text.Glyph('中')                   // g.Advance == 12, g.Bounds == (0,-10)-(11,1)
-end := bitmap.Draw(img, dot, text, "Hello，世界", color.Black)
-w := bitmap.Measure(bold, "Hello")
+- **macOS**: open the font files and click Install Font.
+- **Windows**: select the font files, right-click, and choose Install.
+- **Linux**: copy the font files to `~/.local/share/fonts` and run
+  `fc-cache -f`.
 
-term := bitmap.Fallback(mono.Regular(), mono.EastAsian(zhhans.Regular()))
-n := mono.Cells('中')                       // 2: its glyph advances 2 * mono.CellWidth
-end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // with ligatures
-```
+## Use them at 12 pixels
 
-- Coordinates are relative to the dot on the baseline; y grows downward.
-- `Glyph.Mask` returns a glyph as an `*image.Alpha` in the same
-  coordinates.
+Each glyph is drawn pixel by pixel on a 12-pixel grid, so the fonts are
+sharp only at 12 pixels or a multiple of it (24, 36…). At other sizes they
+blur.
 
-## Build
+| Where | Size |
+|---|---|
+| macOS (Retina or not) | 12 or 24 |
+| Windows at 100% or 200% scaling | 9 pt or 18 pt |
+| Web pages | `font-size: 12px` or `24px` |
 
-```sh
-go run ./cmd/build          # regenerate from glyphs/ and the sources
-go run ./cmd/build -check   # exit non-zero if the repository is out of date
-go test ./...               # -update rewrites the golden images in */testdata
-```
+On Windows at other scalings, such as 125% or 150%, no point size lands on
+whole pixels.
 
-Sources are downloaded once into `cache/` and verified against their
-pinned SHA-256. Output is deterministic.
+## Platinum Mono in a terminal
 
-Font packages, as a release makes them (Python 3.13, `release/requirements.txt`):
+Set the font family to `Platinum Mono SC` (or TC, JP, KR) and the size to
+12.
 
-```sh
-go run ./cmd/export -o dist/bdf
-python release/build.py --version 0.1.0 --date 2026-10-15 dist/bdf dist
-```
+- **Line height** is built in, so leave your terminal's line height at its
+  default. A cell is 7 pixels wide and 14 tall.
+- **Icons** draw two cells wide but advance one, as in the Nerd Font
+  fonts (not Nerd Font Mono). Leave a space after each; tools such as
+  eza and Starship already do.
+- **Ligatures** join `=>` `!=` `<=` `->` `::` `//` and others, 31 in all.
+  They are on by default, through the OpenType feature `calt`; BDF and
+  PCF have none. To turn them off:
 
-Pushing a tag `vX.Y.Z` runs the same steps in `.github/workflows/release.yml`
-and attaches the zips to the release.
+  | Application | Setting |
+  |---|---|
+  | Ghostty | `font-feature = -calt` |
+  | Zed | `"buffer_font_features": { "calt": false }` |
+  | VS Code | `"editor.fontLigatures": false` |
+  | Kitty | `disable_ligatures always` |
+  | WezTerm | `harfbuzz_features = { "calt=0" }` |
 
-Generated files: `sans/*`, `sanssmall/*`, `cjk12/*/*` and `mono/*` except
-tests, `testdata`, `mono/cells.go` and `mono/ligatures.go`; `docs/coverage.md`,
-`docs/specimen.png`, `licenses/`, `NOTICE.md`, `OFL.txt`.
+- **Ambiguous-width characters**, such as `○` `★` and Greek and Cyrillic
+  letters, take one cell. Keep your terminal's ambiguous width set to
+  narrow, the usual default.
 
-The format of `glyphs/*.txt` is described in
-[`internal/drawn`](internal/drawn/drawn.go).
+## For developers
+
+The fonts are also Go packages that draw text into images; see
+[Development](docs/development.md). How each family is made, with its
+metrics and sources, is described in [Design](docs/design.md).
 
 ## License
 
-- Glyph data and faces: SIL Open Font License 1.1 ([OFL.txt](OFL.txt)).
-  Sources and their licenses are listed in [NOTICE.md](NOTICE.md) and
-  [licenses](licenses); the ligatures of Platinum Mono come from AKR
-  Pixel under the MIT License, and its icons from Nerd Fonts under the
-  licenses of their icon sets (MIT, CC BY 4.0, Apache 2.0, OFL 1.1).
-- Code: MIT ([LICENSE](LICENSE)).
+The fonts are under the [SIL Open Font License 1.1](OFL.txt). Platinum
+Mono also contains ligatures under the MIT License and icons under the
+licenses of their icon sets; [NOTICE.md](NOTICE.md) lists every source
+and its license. The code is under the [MIT License](LICENSE).

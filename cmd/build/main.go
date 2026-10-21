@@ -1,6 +1,6 @@
 // Command build makes the faces of this repository from the glyphs drawn
 // in glyphs/ and the sources pinned in sources.toml, and writes them with
-// their coverage report, specimen and notices. With -check, it writes
+// their coverage report, specimens and notices. With -check, it writes
 // nothing and fails if what it makes differs from what is in the
 // repository.
 //

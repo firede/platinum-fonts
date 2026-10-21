@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"strings"
 
 	"github.com/firede/platinum-fonts/bitmap"
 	"github.com/firede/platinum-fonts/internal/cells"
@@ -41,7 +40,7 @@ var regions = []struct {
 
 // specimen draws the faces: the Latin families in each style, the East
 // Asian faces of each region in Regular and Bold, menu bars of their bold,
-// and Platinum Mono in a terminal, as a PNG.
+// and a line of Platinum Mono in each style, as a PNG.
 func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 	face := func(family, style string) *bitmap.Face {
 		for _, l := range latin {
@@ -94,7 +93,7 @@ func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 		y += 18
 		text(title, "Platinum Fonts", m, y, ink, 2)
 		y += 15
-		text(small, "Bitmap faces for Latin and East Asian scripts, on a 12px grid", m, y, label, 1)
+		text(small, "Pixel fonts for interfaces and terminals, on a 12-pixel grid", m, y, label, 1)
 
 		section("Latin")
 		for _, l := range latin {
@@ -127,58 +126,36 @@ func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 			y += 20
 		}
 
-		section("Mono: Regular and Bold")
-		monoText := bitmap.Fallback(mono.regular, monoEastAsian{regular["zhhans"]})
-		monoBold := bitmap.Fallback(mono.bold, monoEastAsian{bold["zhhans"]})
-		// ligText draws s as text does, in Regular, with Mono's ligatures.
-		ligText := func(s string, x, y int) {
+		section("Mono")
+		monoFaces := []struct {
+			style string
+			font  bitmap.Font
+			ligs  [][]bitmap.Glyph
+		}{
+			{"Regular", bitmap.Fallback(mono.regular, monoEastAsian{regular["zhhans"]}), mono.ligRegular},
+			{"Bold", bitmap.Fallback(mono.bold, monoEastAsian{bold["zhhans"]}), mono.ligBold},
+		}
+		for _, f := range monoFaces {
+			y += 14
+			text(small, "Platinum Mono "+f.style, m, y, label, 1)
+			y += 14
 			if img == nil {
-				return
+				continue
 			}
-			rs := []rune(s)
+			rs := []rune(`if a != b && n <= 9 { fmt.Println("你好") } // ✓`)
 			starts := ligature.Starts(mono.ligTexts, rs)
-			dot := image.Pt(x, y)
+			dot := image.Pt(m, y)
 			for i := 0; i < len(rs); i++ {
 				if j := starts[i]; j >= 0 {
-					for _, g := range mono.ligRegular[j] {
+					for _, g := range f.ligs[j] {
 						dot = bitmap.DrawGlyph(scaled{img, k}, dot, g, ink)
 					}
-					i += len(mono.ligRegular[j]) - 1
-				} else if g, ok := monoText.Glyph(rs[i]); ok {
+					i += len(f.ligs[j]) - 1
+				} else if g, ok := f.font.Glyph(rs[i]); ok {
 					dot = bitmap.DrawGlyph(scaled{img, k}, dot, g, ink)
 				}
 			}
 		}
-		y += 6
-		code := monoBox("main.go", 40, "func main() {", "    for i := 0; i <= 2; i++ {", `        fmt.Println("你好") // 问候`, "    }", "}")
-		for i, line := range code {
-			ligText(line, m, y+grid.Ascent+grid.H*i)
-		}
-		x := m + 46*grid.W
-		for i, line := range []string{"", "", "▁▂▃▄▅▆▇█▇▆", "⣀⣠⣤⣴⣶⣾⣿⣷⣦⣄", "░░▒▒▓▓██▓▒", "", ""} {
-			text(monoText, line, x, y+grid.Ascent+grid.H*i, ink, 1)
-		}
-		y += len(code)*grid.H + 8
-		// A prompt of Powerline segments, in Bold.
-		x = m
-		segments := []struct {
-			s      string
-			fg, bg color.Color
-		}{{" \uF07C ~/fonts ", paper, ink}, {" \uE0A0 main ", ink, barFace}}
-		for i, seg := range segments {
-			w := bitmap.Measure(monoBold, seg.s)
-			rect(x, y, w, grid.H, seg.bg)
-			text(monoBold, seg.s, x, y+grid.Ascent, seg.fg, 1)
-			x += w
-			next := color.Color(paper)
-			if i+1 < len(segments) {
-				next = segments[i+1].bg
-			}
-			rect(x, y, grid.W, grid.H, next)
-			x = text(monoBold, "\uE0B0", x, y+grid.Ascent, seg.bg, 1)
-		}
-		text(monoBold, " go test ./... \uF00C ", x, y+grid.Ascent, ink, 1)
-		y += grid.H
 		return y + m
 	}
 	h := draw(nil)
@@ -204,23 +181,6 @@ func regionFaces(cjk *cjkMade, pkg string) (regular, bold *bitmap.Face, err erro
 		}
 	}
 	return nil, nil, fmt.Errorf("no package %s in cjk12", pkg)
-}
-
-// monoBox returns lines of a box drawn with box drawing characters around
-// lines of text inner cells wide, its title on its top.
-func monoBox(title string, inner int, lines ...string) []string {
-	width := func(s string) int {
-		n := 0
-		for _, r := range s {
-			n += cells.Of(r)
-		}
-		return n
-	}
-	out := []string{"╭─ " + title + " " + strings.Repeat("─", inner-width(title)-1) + "╮"}
-	for _, l := range lines {
-		out = append(out, "│ "+l+strings.Repeat(" ", inner-width(l))+" │")
-	}
-	return append(out, "╰"+strings.Repeat("─", inner+2)+"╯")
 }
 
 // monoEastAsian is a face of cjk12 as mono.EastAsian sets it, which the
