@@ -34,6 +34,7 @@ const srcW, srcH, srcAscent = 6, 12, 10
 // monoMade is what buildMono made, for the docs.
 type monoMade struct {
 	src, ligSrc   *source.Source
+	icons         *iconsMade
 	regular, bold *bitmap.Face
 	// The ligatures, longest first, and their slices in each style.
 	ligTexts            []string
@@ -154,11 +155,21 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 	if err := buildLigatures(made, sources, cache, glyphs, out); err != nil {
 		return nil, err
 	}
+	icons, iconsMade, err := buildIcons(sources, cache, glyphs, out)
+	if err != nil {
+		return nil, err
+	}
+	made.icons = iconsMade
+	for r, g := range icons {
+		glyphs[r] = g
+	}
 
+	// Bold draws the generated glyphs and the icons as Regular does.
 	bold := map[rune]bitmap.Glyph{}
 	for r, g := range glyphs {
 		_, gen := generated[r]
-		if _, mine := own.Glyphs[r]; gen && !mine {
+		_, icon := icons[r]
+		if _, mine := own.Glyphs[r]; icon || gen && !mine {
 			bold[r] = g
 		} else {
 			bold[r] = emboldenInCells(g)
@@ -186,6 +197,7 @@ func buildMono(sources map[string]*source.Source, cache string, cjk *cjkMade, ou
 		"Version": src.Pinned(), "Glyphs": len(glyphs),
 		"Width": grid.W, "Height": grid.H, "Ascent": grid.Ascent,
 		"Ligatures": made.ligTexts, "LigatureSource": made.ligSrc.Repository,
+		"Icons": made.icons.icons, "IconVersion": made.icons.src.Pinned(),
 		"CapHeight": own.CapHeight, "XHeight": own.XHeight,
 	})
 	if err != nil {
@@ -371,6 +383,11 @@ var monoTemplate = template.Must(template.New("mono").Parse(`// Code generated b
 //
 // Draw draws its ligatures, hand-drawn for AKR Pixel ({{.LigatureSource}}),
 // widened likewise: each a slice in each cell of its characters.
+//
+// Its {{.Icons}} icons, in the Private Use Area, are those of Nerd Fonts
+// {{.IconVersion}}, rasterized onto the cells: each takes a cell and draws
+// into the next, as in the Nerd Font (not Nerd Font Mono) fonts, so a
+// space should follow it.
 //
 // Bold is Regular emboldened within the cells: each glyph drawn again a
 // pixel to its right, gaps of a pixel between strokes kept open, the

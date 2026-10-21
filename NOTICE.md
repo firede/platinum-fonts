@@ -24,6 +24,28 @@ Ligatures: [AKR Pixel](https://github.com/AkaraChen/font) 61efafc, drawn on Fusi
 likewise; each is cut into a slice per cell, and Bold emboldens them. MIT License,
 [licenses/akr-pixel/LICENSE.txt](licenses/akr-pixel/LICENSE.txt): Copyright (c) 2026 AkaraChen.
 
+Icons: [Nerd Fonts](https://github.com/ryanoasis/nerd-fonts) v3.5.1, Symbols Nerd Font, rasterized onto the cells;
+the most used are drawn anew after them in [glyphs/icons.txt](glyphs/icons.txt), for this repository.
+Nerd Fonts: MIT License, [licenses/nerd-fonts/LICENSE.txt](licenses/nerd-fonts/LICENSE.txt). The icon sets it gathers, with the
+licenses it lists for them:
+
+| Icon set | License | License files |
+|---|---|---|
+| [Codicons](https://github.com/microsoft/vscode-codicons) | CC BY 4.0 | [licenses/nerd-fonts/codicons.txt](licenses/nerd-fonts/codicons.txt) |
+| [Devicons](https://github.com/devicons/devicon) | MIT |  |
+| [extraglyphs](https://github.com/source-foundry/Hack) | MIT |  |
+| [Font Awesome](https://github.com/FortAwesome/Font-Awesome) | CC BY 4.0 | [licenses/nerd-fonts/font-awesome.txt](licenses/nerd-fonts/font-awesome.txt) |
+| [Font Awesome Extension](https://github.com/AndreLZGava/font-awesome-extension) | MIT |  |
+| [Font Logos](https://github.com/lukas-w/font-logos) | unlicensed |  |
+| [MaterialDesign](https://github.com/Templarian/MaterialDesign-Font) | Apache 2.0 | [licenses/nerd-fonts/materialdesign.txt](licenses/nerd-fonts/materialdesign.txt), [licenses/nerd-fonts/apache-2.0.txt](licenses/nerd-fonts/apache-2.0.txt) |
+| [Octicons](https://github.com/primer/octicons) | MIT | [licenses/nerd-fonts/octicons.txt](licenses/nerd-fonts/octicons.txt) |
+| [Seti and original](https://github.com/jesseweed/seti-ui) | MIT |  |
+| [Pomicons](https://github.com/gabrielelana/pomicons) | OFL 1.1 RFN | [licenses/nerd-fonts/pomicons.txt](licenses/nerd-fonts/pomicons.txt) |
+| [Powerline Extra](https://github.com/ryanoasis/powerline-extra-symbols) | MIT | [licenses/nerd-fonts/powerline-extra.txt](licenses/nerd-fonts/powerline-extra.txt) |
+| [Powerline Symbols](https://github.com/powerline/powerline) | MIT | [licenses/nerd-fonts/powerline-symbols.txt](licenses/nerd-fonts/powerline-symbols.txt) |
+| [Power Symbols IEC](https://github.com/jloughry/Unicode) | MIT |  |
+| [Weather Icons](https://github.com/erikflowers/weather-icons) | OFL 1.1 | [licenses/nerd-fonts/weather-icons.txt](licenses/nerd-fonts/weather-icons.txt) |
+
 ## cjk12
 
 Source: [Fusion Pixel Font](https://github.com/TakWolf/fusion-pixel-font) 2026.09.25, 12px, proportional.

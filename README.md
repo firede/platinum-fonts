@@ -71,6 +71,13 @@ Ascent and descent are those `Face.Ascent` and `Face.Descent` return.
   `====` and `....` are not joined. In the fonts they are the OpenType
   feature `calt` (OTF, TTF, WOFF2 and OTB; turn `calt` off where they are
   not wanted); BDF and PCF have none. In Go, `mono.Draw` draws them.
+- Platinum Mono icons: the 10,600 or so of [Nerd Fonts](https://www.nerdfonts.com),
+  in the Private Use Area, rasterized onto the cells; some 170 of those most
+  used, by `eza`, Starship and the Powerline prompts (folders and files,
+  languages, systems, Git, status), are drawn by hand in
+  [`glyphs/icons.txt`](glyphs/icons.txt). Each advances 1 cell and draws
+  up to 2 cells wide, as in Nerd Font (not Nerd Font Mono), so a space
+  should follow it. Bold draws them as Regular does.
 
 ## Usage
 
@@ -97,13 +104,6 @@ end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // with
 - Coordinates are relative to the dot on the baseline; y grows downward.
 - `Glyph.Mask` returns a glyph as an `*image.Alpha` in the same
   coordinates.
-
-## Planned
-
-For Platinum Mono: Nerd Fonts icons, rasterized to the grid. Each
-advances 1 cell, its ink up to 2 cells wide, as in Nerd Font (not Nerd
-Font Mono), and wants a space after it. Frequently used icons are
-corrected by hand.
 
 ## Build
 
@@ -138,5 +138,6 @@ The format of `glyphs/*.txt` is described in
 - Glyph data and faces: SIL Open Font License 1.1 ([OFL.txt](OFL.txt)).
   Sources and their licenses are listed in [NOTICE.md](NOTICE.md) and
   [licenses](licenses); the ligatures of Platinum Mono come from AKR
-  Pixel under the MIT License.
+  Pixel under the MIT License, and its icons from Nerd Fonts under the
+  licenses of their icon sets (MIT, CC BY 4.0, Apache 2.0, OFL 1.1).
 - Code: MIT ([LICENSE](LICENSE)).

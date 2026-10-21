@@ -58,7 +58,7 @@ const face = `@height 7
 .#
 #.
 
-== U+0328
+== U+0328 ogonek
 .#
 .#
 `

@@ -10,8 +10,9 @@
 // The directives give the cell's height and the rows of it over the
 // baseline (ascent), the design's cap height and x-height, and the blank
 // columns after every glyph (tracking, 1 unless given). A glyph line is
-// "== X", X the character, "U+XXXX" its code point in hexadecimal, or
-// "space N" for a blank glyph N columns wide. Blank lines are ignored;
+// "== X", X the character, "U+XXXX" its code point in hexadecimal and
+// optionally a name after it, or "space N" for a blank glyph N columns
+// wide. Blank lines are ignored;
 // rows missing at the bottom of a glyph are blank, and a glyph is as wide
 // as its longest row.
 //
@@ -90,7 +91,8 @@ func Parse(name, src string) (*Face, error) {
 				r = ' '
 				widths[r] = w
 			case strings.HasPrefix(spec, "U+"):
-				n, err := strconv.ParseInt(spec[2:], 16, 32)
+				code, _, _ := strings.Cut(spec[2:], " ")
+				n, err := strconv.ParseInt(code, 16, 32)
 				if err != nil {
 					return nil, fmt.Errorf("%s:%d: %v", name, line, err)
 				}

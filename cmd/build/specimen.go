@@ -164,7 +164,7 @@ func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 		segments := []struct {
 			s      string
 			fg, bg color.Color
-		}{{" ~/fonts ", paper, ink}, {" main ", ink, barFace}}
+		}{{" \uF07C ~/fonts ", paper, ink}, {" \uE0A0 main ", ink, barFace}}
 		for i, seg := range segments {
 			w := bitmap.Measure(monoBold, seg.s)
 			rect(x, y, w, grid.H, seg.bg)
@@ -177,7 +177,7 @@ func specimen(latin []latinFace, cjk *cjkMade, mono *monoMade) ([]byte, error) {
 			rect(x, y, grid.W, grid.H, next)
 			x = text(monoBold, "\uE0B0", x, y+grid.Ascent, seg.bg, 1)
 		}
-		text(monoBold, " go test ./... ", x, y+grid.Ascent, ink, 1)
+		text(monoBold, " go test ./... \uF00C ", x, y+grid.Ascent, ink, 1)
 		y += grid.H
 		return y + m
 	}

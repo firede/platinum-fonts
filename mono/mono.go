@@ -13,6 +13,11 @@
 // Draw draws its ligatures, hand-drawn for AKR Pixel (https://github.com/AkaraChen/font),
 // widened likewise: each a slice in each cell of its characters.
 //
+// Its 10592 icons, in the Private Use Area, are those of Nerd Fonts
+// v3.5.1, rasterized onto the cells: each takes a cell and draws
+// into the next, as in the Nerd Font (not Nerd Font Mono) fonts, so a
+// space should follow it.
+//
 // Bold is Regular emboldened within the cells: each glyph drawn again a
 // pixel to its right, gaps of a pixel between strokes kept open, the
 // first column of the cells clear. The characters that fill their cells
@@ -28,7 +33,7 @@ import (
 )
 
 // Glyphs is the number of characters each face draws.
-const Glyphs = 1471
+const Glyphs = 12063
 
 //go:embed regular.bin
 var dataRegular []byte

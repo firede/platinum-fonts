@@ -59,6 +59,12 @@ Platinum Mono SC、TC、JP、KR，各含 Regular 和 Bold。
   `....` 这样的连续字符不连。字体中以 OpenType 特性 `calt` 实现（OTF、TTF、WOFF2
   和 OTB；不需要时关闭 `calt` 即可）；BDF 和 PCF 不含连字。在 Go 中由 `mono.Draw`
   绘制。
+- Platinum Mono 图标：[Nerd Fonts](https://www.nerdfonts.com) 私用区的约 10,600 个
+  图标，栅格化到格子上；其中最常用的约 170 个（`eza`、Starship 和 Powerline 提示符
+  用到的文件夹与文件、编程语言、操作系统、Git、状态等）在
+  [`glyphs/icons.txt`](glyphs/icons.txt) 中手绘。每个图标步进 1 格、
+  最宽画到 2 格，与 Nerd Font（而非 Nerd Font Mono）相同，后面应跟一个空格。Bold
+  与 Regular 的图标相同。
 
 ## 用法
 
@@ -84,11 +90,6 @@ end = mono.Draw(img, dot, term, mono.Ligatures(), "a != b", color.Black) // 带�
 
 - 坐标以基线上的原点为基准，y 轴向下。
 - `Glyph.Mask` 以相同坐标返回字形的 `*image.Alpha`。
-
-## 计划
-
-Platinum Mono 还将加入 Nerd Fonts 图标，栅格化到网格上：步进 1 格，墨迹最宽 2 格，
-与 Nerd Font（而非 Nerd Font Mono）相同，后面需要跟一个空格。常用图标手工修正。
 
 ## 构建
 
@@ -120,5 +121,6 @@ zip 附到对应的 Release。
 
 - 字形数据与字体：SIL Open Font License 1.1（[OFL.txt](OFL.txt)）。来源及其许可见
   [NOTICE.md](NOTICE.md) 和 [licenses](licenses)；Platinum Mono 的连字取自 AKR
-  Pixel，采用 MIT 许可证。
+  Pixel，采用 MIT 许可证；图标取自 Nerd Fonts，采用各图标集的许可证（MIT、
+  CC BY 4.0、Apache 2.0、OFL 1.1）。
 - 代码：MIT（[LICENSE](LICENSE)）。

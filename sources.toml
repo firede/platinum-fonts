@@ -43,3 +43,69 @@ version = "v3.5.1"
 url = "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.5.1/NerdFontsSymbolsOnly.zip"
 sha256 = "fdca3682534f6f65e1ccb2345b0362ccf67d9b8eca7c8025330946e93e2473bc"
 license = "MIT, with the icon sets' own (OFL-1.1, Apache-2.0, CC-BY-4.0 and others)"
+
+# The licenses of the icon sets in the icons, from the Nerd Fonts
+# repository at the release; the others are MIT or unlicensed.
+[nerd-fonts-license-codicons]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/codicons/LICENSE.txt"
+sha256 = "d6239afa918961b465b07bf7411cbe34ff6685854f58553db7966f4881a0211f"
+license = "CC-BY-4.0"
+
+[nerd-fonts-license-font-awesome]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/font-awesome/LICENSE.txt"
+sha256 = "de784a808496d49f5f80dd9d1d6e9a51cff712cfbc339e7c25155631ae3cdb5d"
+license = "CC-BY-4.0"
+
+[nerd-fonts-license-materialdesign]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/materialdesign/LICENSE"
+sha256 = "3bae6305bcaa6d10219b999f65c342034c2d40b1c0e8567fa08605e73ccba829"
+license = "Apache-2.0"
+
+[nerd-fonts-license-octicons]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/octicons/LICENSE"
+sha256 = "4f886642f9e8d99eeadd484acdac011c3fde8a338faf52f5ca1408c13b9a9b63"
+license = "MIT"
+
+[nerd-fonts-license-pomicons]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/pomicons/LICENSE"
+sha256 = "cb4797a9745683f287c28833db596e9d68ec43082d59359b3a49c504f0f610ce"
+license = "OFL-1.1"
+
+[nerd-fonts-license-powerline-extra]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/powerline-extra/LICENSE"
+sha256 = "544307a58e6826c24145b2af1c3578b53e2e21ae0e6c67ab4c6abd544304d26a"
+license = "MIT"
+
+[nerd-fonts-license-powerline-symbols]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/powerline-symbols/LICENSE.txt"
+sha256 = "46d5355e4734468135d8e4a30d0916292cc4df2b3ec30aa68c866f82497933be"
+license = "MIT"
+
+[nerd-fonts-license-weather-icons]
+repository = "https://github.com/ryanoasis/nerd-fonts"
+commit = "b894ea7803af6aade63d60a4381e006098ec9c4d"
+url = "https://raw.githubusercontent.com/ryanoasis/nerd-fonts/b894ea7803af6aade63d60a4381e006098ec9c4d/src/glyphs/weather-icons/OFL.txt"
+sha256 = "69cdedc8a4f57a30d68e4f045af8b9cce0ec3b1a6e7eec1ad41737c894f26790"
+license = "OFL-1.1"
+
+[apache-license]
+# The Apache License the Material Design icons' license refers to.
+repository = "https://www.apache.org/licenses/"
+version = "2.0"
+url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+sha256 = "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+license = "Apache-2.0"

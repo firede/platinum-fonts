@@ -61,8 +61,19 @@ func buildDocs(latin []latinFace, cjk *cjkMade, mono *monoMade, out map[string][
 	if len(ligHolders) == 0 {
 		return fmt.Errorf("%s has no copyright", monoLigatureLicense)
 	}
+	var sets strings.Builder
+	for _, set := range iconSets {
+		var files []string
+		for _, name := range set.sources {
+			f := licenseFile(name)
+			files = append(files, fmt.Sprintf("[%s](%s)", f, f))
+		}
+		fmt.Fprintf(&sets, "| [%s](%s) | %s | %s |\n", set.name, set.url, set.license, strings.Join(files, ", "))
+	}
+	nerdLicense := licenseFile(mono.icons.src.Name)
 	fmt.Fprintf(&notice, noticeHead, ownCopyright, mono.src.Repository, mono.src.Pinned(), ownCopyright,
 		mono.ligSrc.Repository, mono.ligSrc.Commit, monoLigatureLicense, monoLigatureLicense, strings.Join(ligHolders, "; "),
+		mono.icons.src.Repository, mono.icons.src.Pinned(), iconsDrawn, iconsDrawn, nerdLicense, nerdLicense, sets.String(),
 		cjk.src.Repository, cjk.src.Pinned())
 	var ofl strings.Builder
 	ofl.WriteString("Platinum Fonts\nhttps://github.com/firede/platinum-fonts\n\n" + ownCopyright + "\n")
@@ -149,6 +160,14 @@ Ligatures: [AKR Pixel](%s) %.7s, drawn on Fusion Pixel's cells and widened
 likewise; each is cut into a slice per cell, and Bold emboldens them. MIT License,
 [%s](%s): %s.
 
+Icons: [Nerd Fonts](%s) %s, Symbols Nerd Font, rasterized onto the cells;
+the most used are drawn anew after them in [%s](%s), for this repository.
+Nerd Fonts: MIT License, [%s](%s). The icon sets it gathers, with the
+licenses it lists for them:
+
+| Icon set | License | License files |
+|---|---|---|
+%s
 ## cjk12
 
 Source: [Fusion Pixel Font](%s) %s, 12px, proportional.

@@ -39,7 +39,8 @@ func runes(f *bitmap.Face) []rune {
 }
 
 // TestFaces checks that every glyph of both styles stays in the cells of
-// its character, and advances as far.
+// its character, and advances as far; one in the Private Use Area, as an
+// icon, may draw into the next cell.
 func TestFaces(t *testing.T) {
 	if !slices.Equal(runes(mono.Regular()), runes(mono.Bold())) {
 		t.Error("Regular and Bold draw different characters")
@@ -51,12 +52,16 @@ func TestFaces(t *testing.T) {
 		f.Runes(func(r rune) bool {
 			g, _ := f.Glyph(r)
 			w := mono.Cells(r) * mono.CellWidth
-			if g.Advance != w || !g.Bounds.In(image.Rect(0, -mono.Ascent, w, mono.Descent)) {
+			box := image.Rect(0, -mono.Ascent, w, mono.Descent)
+			if unicode.Is(unicode.Co, r) {
+				box.Max.X += w
+			}
+			if g.Advance != w || !g.Bounds.In(box) {
 				t.Errorf("%q advances %d in %v", r, g.Advance, g.Bounds)
 			}
 			return true
 		})
-		for _, r := range "Aa1{}�─█⣿Ａｇ—→■✓❯≠" {
+		for _, r := range "Aa1{}�─█⣿Ａｇ—→■✓❯≠\uE0A0\uF07B\U000F0219" {
 			if !f.Has(r) {
 				t.Errorf("does not draw %q", r)
 			}
